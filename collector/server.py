@@ -26,6 +26,7 @@ SEARCH_BASE = "https://www.avito.ru/moskva/kvartiry/sdam/na_dlitelnyy_srok-ASgBA
 SEARCH_PARAMS = {"pmax": 70000, "s": 104}
 DEFAULT_PAGES = 60
 AVITO_ORIGIN = "https://www.avito.ru"
+CIAN_MAX_PAGES = 54
 
 START_INTERVAL_MS = 38_000
 MIN_INTERVAL_MS = 12_000
@@ -281,6 +282,13 @@ class Collector:
                 first_seen TEXT NOT NULL,
                 last_seen TEXT NOT NULL
             );
+            CREATE TABLE IF NOT EXISTS cian_offers (
+                cian_id TEXT PRIMARY KEY,
+                json TEXT NOT NULL,
+                raw TEXT,
+                first_seen TEXT NOT NULL,
+                last_seen TEXT NOT NULL
+            );
             CREATE TABLE IF NOT EXISTS items (
                 item_id TEXT PRIMARY KEY,
                 json TEXT NOT NULL,
@@ -359,6 +367,13 @@ class Collector:
     def seed_search_urls(self, urls, force=False):
         return [self.enqueue_task("search", normalize_url(u), {}, force) for u in urls]
 
+    def seed_cian_urls(self, base_urls, pages, force=False):
+        ids = []
+        for base in base_urls:
+            sep = "&" if "?" in base else "?"
+            ids += [self.enqueue_task("cian_search", f"{base}{sep}p={p}", {"page": p}, force) for p in range(1, pages + 1)]
+        return ids
+
     def seed_item_urls(self, urls, force=False):
         return [self.enqueue_task("item", normalize_url(u), {}, force) for u in urls]
 
@@ -427,6 +442,24 @@ class Collector:
         meta.update({"total_results": data.get("total_results"), "total_pages": data.get("total_pages"), "cards": stored})
         return json.dumps(meta, ensure_ascii=False)
 
+    def store_cian_search(self, task_row, data, html):
+        now = now_iso()
+        page = data.get("page")
+        self.save_sample("cian", f"p{page}", html)
+        stored = 0
+        for offer in data.get("offers") or []:
+            if not offer.get("cian_id"):
+                continue
+            compact = {**offer["compact"], "page": page}
+            self.conn.execute(
+                "INSERT INTO cian_offers (cian_id, json, raw, first_seen, last_seen) VALUES (?, ?, ?, ?, ?) ON CONFLICT(cian_id) DO UPDATE SET json = excluded.json, raw = excluded.raw, last_seen = excluded.last_seen",
+                (str(offer["cian_id"]), json.dumps(compact, ensure_ascii=False), offer.get("raw"), now, now),
+            )
+            stored += 1
+        meta = json.loads(task_row["meta"] or "{}")
+        meta.update({"total_results": data.get("total_results"), "total_pages": data.get("total_pages"), "offers": stored})
+        return json.dumps(meta, ensure_ascii=False)
+
     def submit_result(self, task_id, ok, kind=None, data=None, html=None, reason=None, timings=None):
         with self.lock:
             task_row = self.get_task(task_id)
@@ -455,6 +488,12 @@ class Collector:
                 if not data.get("hits"):
                     self.log_event("empty_search", {"task_id": task_id, "url": task_row["url"]})
                     self.save_html(FAILED_DIR, f"empty_{task_id}", html)
+                self.pacing.record_success()
+                self.save_pacing()
+                outcome = "ok"
+            elif ok and kind == "cian_search" and data is not None and data.get("offers"):
+                meta = self.store_cian_search(task_row, data, html)
+                self.set_task_status(task_id, "done", meta=meta)
                 self.pacing.record_success()
                 self.save_pacing()
                 outcome = "ok"
@@ -499,6 +538,7 @@ class Collector:
             st["task_counts"] = counts
             st["items_count"] = self.count("SELECT COUNT(*) FROM items")
             st["cards_count"] = self.count("SELECT COUNT(*) FROM search_cards")
+            st["cian_offers_count"] = self.count("SELECT COUNT(*) FROM cian_offers")
             actual = median(self.recent_intervals)
             st["target_interval_ms"] = self.pacing.interval_ms
             st["actual_interval_median_ms"] = actual
@@ -618,6 +658,10 @@ def main():
     p_searches = sub.add_parser("seed-searches")
     p_searches.add_argument("file")
     p_searches.add_argument("--force", action="store_true")
+    p_cian = sub.add_parser("seed-cian")
+    p_cian.add_argument("file")
+    p_cian.add_argument("--pages", type=int, default=CIAN_MAX_PAGES)
+    p_cian.add_argument("--force", action="store_true")
     p_items = sub.add_parser("seed-items")
     p_items.add_argument("file")
     p_items.add_argument("--force", action="store_true")
@@ -628,6 +672,8 @@ def main():
     collector = Collector()
     if args.cmd == "seed-pages":
         ids = collector.seed_pages(args.pages, args.force)
+    elif args.cmd == "seed-cian":
+        ids = collector.seed_cian_urls(read_lines(args.file), args.pages, args.force)
     elif args.cmd == "seed-searches":
         ids = collector.seed_search_urls(read_lines(args.file), args.force)
     else:

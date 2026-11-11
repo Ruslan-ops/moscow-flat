@@ -276,11 +276,12 @@ async function beginNavigate() {
 
     const remainingMs = () => Math.max(1000, tNavStart + NAV_TIMEOUT_MS - Date.now());
 
+    const isCian = task.type === "cian_search";
     try {
       await withTimeout(
         chrome.scripting.executeScript({
           target: { tabId: state.workerTabId },
-          files: ["extract.js"],
+          files: isCian ? ["extract.js", "cian.js"] : ["extract.js"],
         }),
         10_000,
         "inject extract.js (probe)"
@@ -290,7 +291,11 @@ async function beginNavigate() {
       const results = await withTimeout(
         chrome.scripting.executeScript({
           target: { tabId: state.workerTabId },
-          func: (timeoutMs, taskInfo) => {
+          func: (timeoutMs, taskInfo, cianMode) => {
+            if (cianMode) {
+              const cianApi = window.CianCollectorExtract;
+              return cianApi ? cianApi.waitForReady(timeoutMs, taskInfo) : { ready: false, kind: "no-api" };
+            }
             const api = window.AvitoCollectorExtract;
             if (!api || !api.waitForReadyMarkers) {
               return { ready: false, kind: "no-api" };
@@ -310,7 +315,7 @@ async function beginNavigate() {
               return res;
             });
           },
-          args: [probeTimeout, { type: task.type, url: task.url, tNavStart }],
+          args: [probeTimeout, { type: task.type, url: task.url, tNavStart }, isCian],
         }),
         probeTimeout + 5_000,
         "readiness probe"
@@ -348,7 +353,7 @@ async function beginNavigate() {
     await withTimeout(
       chrome.scripting.executeScript({
         target: { tabId: state.workerTabId },
-        files: ["extract.js", "content.js"],
+        files: task.type === "cian_search" ? ["extract.js", "cian.js", "cian_content.js"] : ["extract.js", "content.js"],
       }),
       EXTRACT_TIMEOUT_MS,
       "inject extract.js+content.js"
@@ -388,7 +393,8 @@ function waitForRealNavigation(tabId, task, tNavStart, timeoutMs) {
       } catch (e) {
         return false;
       }
-      if (task.type === "search") {
+      if (task.type === "cian_search" && u.pathname.includes("captcha")) return true;
+      if (task.type === "search" || task.type === "cian_search") {
         if (u.pathname !== taskPath) return false;
         if ((u.searchParams.get("p") || "1") !== taskPage) return false;
         return true;

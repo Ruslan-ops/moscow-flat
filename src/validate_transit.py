@@ -11,7 +11,7 @@ import dgis_cache
 
 ENV = "d:/Users/Ruslan/VsCodeProjects/moscow-flat/.env"
 OUT_PATH = "data/metro/validation_2gis.json"
-MAX_CALLS = 45
+MAX_CALLS = 70
 COUNT_PATH = "data/metro/dgis_routing_count.txt"
 HUBS_PATH = "data/jobs/creative_hubs.json"
 TRANSPORT = ["metro", "bus", "tram", "trolleybus", "light_metro", "suburban_train", "shuttle_bus"]
@@ -23,7 +23,7 @@ FAR_WALK_MIN = 15.0
 
 def key():
     for line in open(ENV, encoding="utf-8"):
-        if line.startswith("DGIS_KEY="):
+        if line.startswith("DGIS_KEY_PT="):
             return line.split("=", 1)[1].strip().strip('"').strip("'")
 
 
@@ -58,7 +58,7 @@ def route(p, k, run):
         run["calls"] += 1
         n = int(open(COUNT_PATH).read()) + 1
         open(COUNT_PATH, "w").write(str(n))
-        time.sleep(0.3)
+        time.sleep(13)
     if not isinstance(j, list) or not j:
         return None
     return min(j, key=lambda a: a["total_duration"])["total_duration"] / 60

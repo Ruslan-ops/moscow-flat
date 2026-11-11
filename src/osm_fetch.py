@@ -1,17 +1,20 @@
+import hashlib
 import json
+import os
 import math
 import re
 import sys
 import time
 import requests
 from shapely.geometry import Polygon, LineString, box, mapping
-from shapely.ops import linemerge, polygonize, unary_union, transform
+from shapely.ops import polygonize, unary_union, transform
 
 BBOX = (55.55, 37.35, 55.92, 37.86)
 BBOX_STR = f"{BBOX[0]},{BBOX[1]},{BBOX[2]},{BBOX[3]}"
 ENDPOINTS = ["https://overpass-api.de/api/interpreter", "https://overpass.kumi.systems/api/interpreter"]
 HEADERS = {"User-Agent": "moscow-flat-research/1.0 (personal flat search)"}
 OUT = "d:/Users/Ruslan/VsCodeProjects/moscow-flat/data/osm"
+CACHE = "C:/Users/Ruslan/AppData/Local/Temp/claude/a05ba774ccb0e80c/182819a7-bbc9-4a8f-bf17-20c3cb3de327/scratchpad"
 COS = math.cos(math.radians(55.75))
 BOX = box(BBOX[1], BBOX[0], BBOX[3], BBOX[2])
 
@@ -26,13 +29,20 @@ def to_deg(x, y, z=None):
 
 def fetch(body):
     q = f"[out:json][timeout:180];{body}"
+    cache = f"{CACHE}/{hashlib.md5(q.encode()).hexdigest()}.json"
+    if os.path.exists(cache):
+        with open(cache, encoding="utf-8") as f:
+            return json.load(f)
     for attempt in range(3):
         for url in ENDPOINTS:
             try:
                 r = requests.post(url, data={"data": q}, headers=HEADERS, timeout=240)
                 if r.status_code == 200:
                     time.sleep(5)
-                    return r.json()["elements"]
+                    els = r.json()["elements"]
+                    with open(cache, "w", encoding="utf-8") as f:
+                        json.dump(els, f, ensure_ascii=False)
+                    return els
                 print(url, r.status_code)
             except Exception as e:
                 print(url, repr(e))
@@ -50,8 +60,7 @@ def way_line(geom):
 
 
 def rings_union(lines):
-    merged = linemerge(unary_union(lines))
-    return unary_union(list(polygonize(merged)))
+    return unary_union(list(polygonize(unary_union(lines))))
 
 
 def element_polygon(el):
@@ -122,7 +131,10 @@ nwr["amenity"~"^(arts_centre|exhibition_centre)$"]({BBOX_STR});
         c = el if el["type"] == "node" else el.get("center")
         if not c:
             continue
-        rows.append({"name": tags.get("name"), "kind": tags.get("tourism") or tags.get("amenity"), "lat": c["lat"], "lng": c["lon"]})
+        kind = tags.get("tourism") if tags.get("tourism") in ("museum", "gallery") else tags.get("amenity")
+        if kind not in ("museum", "gallery", "arts_centre", "exhibition_centre"):
+            continue
+        rows.append({"name": tags.get("name"), "kind": kind, "lat": c["lat"], "lng": c["lon"]})
     save("culture", rows)
     kinds = {}
     for r in rows:
@@ -142,12 +154,14 @@ way["railway"="tram"]({BBOX_STR});
         tags = el.get("tags", {})
         if len(el.get("geometry", [])) < 2:
             continue
-        if tags.get("highway"):
+        if tags.get("highway") in ("motorway", "trunk", "primary"):
             cls = tags["highway"]
         elif tags.get("railway") == "tram":
             cls = "tram"
-        else:
+        elif tags.get("railway") == "rail":
             cls = "rail"
+        else:
+            continue
         simp = transform(to_deg, transform(to_m, way_line(el["geometry"])).simplify(10, preserve_topology=True))
         feats.append({"type": "Feature", "properties": {"class": cls, "name": tags.get("name")}, "geometry": mapping(simp)})
     save("noise", {"type": "FeatureCollection", "features": feats})
