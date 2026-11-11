@@ -20,6 +20,11 @@ Rating scale = predicted client rating 1..5 of the flat itself (ignore price/loc
 - A full "стенка" wall unit or a whole room of heavy Soviet furniture is borderline: note as "попросить вывезти", lower by ~1.
 - Output both: base_score (1-5), soft_score (1-5), predicted rating = mostly base, and a list `fixable` of what to remove/replace.
 
+## Alignment round 2 (client agreed with 7/8 of data/reviews/align_opus.json)
+- Tidy Soviet flat (walls not faded, bathroom ok, Soviet furniture) → 2-2.5, still "нет".
+- Lived-in granny flat 1927 with carpets/crystal → client says 2 (not 1): 1 is reserved for unfinished/dirty/damaged.
+- Bright saturated wall colours (blue/orange) are usually a minus; acceptable only when the rest is fresh (then still 4 max, note "перекрасить").
+
 ## Rules distilled
 - 5: stylish modern renovation, cohesive design, good light, modern kitchen + bathroom.
 - 4: clean fresh modern-ish renovation (light walls, laminate/clean parquet, new simple furniture, modern kitchen fronts, tiled bathroom in good shape). IKEA-level is fine.
