@@ -4,3 +4,4 @@ __pycache__/
 *.sqlite
 .env
 data/cache/
+data/avito/samples/
