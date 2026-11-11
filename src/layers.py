@@ -9,6 +9,7 @@ from transit import LAT0, LON0, DLAT, DLON, KM_LAT, KM_LON, WALK_KMH, door_to_do
 
 ROOT = __file__.replace("\\", "/").rsplit("/src/", 1)[0]
 LAYERS_DIR = f"{ROOT}/data/layers"
+_lines = {}
 ORG_WEIGHTS = {"decor": 1.0, "archviz": 0.9, "florist_studio": 0.8}
 HUB_FACTOR = 25
 OSM_JOB_WEIGHT = 0.3
@@ -50,8 +51,10 @@ def nearest_dist_m(key, geoms, latlon):
 
 
 def line_geoms(classes):
-    feats = read_json("data/osm/noise.json")["features"]
-    return [project_geom(shape(f["geometry"])) for f in feats if f["properties"]["class"] in classes]
+    key = tuple(sorted(classes))
+    if key not in _lines:
+        _lines[key] = [project_geom(shape(f["geometry"])) for f in read_json("data/osm/noise.json")["features"] if f["properties"]["class"] in classes]
+    return _lines[key]
 
 
 def noise_distances(latlon):

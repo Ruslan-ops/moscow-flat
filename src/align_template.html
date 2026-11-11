@@ -1,0 +1,116 @@
+<title>Как я выбираю квартиру</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Golos+Text:wght@400;500;600&family=Unbounded:wght@500&display=swap">
+<style>
+/* reading column: method first, then one card per flat with photos, repair verdict and place facts */
+:root {
+  --bg: #f3f5f2; --surface: #ffffff; --ink: #1d2420; --muted: #5d6a62; --line: #d9dfda;
+  --accent: #3f6b55; --accent-ink: #ffffff;
+  --good: #2f7a4f; --good-bg: #e2f1e8; --mid: #8a6a12; --mid-bg: #f6eed5; --bad: #a43d3d; --bad-bg: #f6e1e1;
+  --display: "Unbounded", "Golos Text", system-ui, sans-serif;
+  --body: "Golos Text", system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #141916; --surface: #1c231f; --ink: #e6ece8; --muted: #9aa9a0; --line: #2e3833; --accent: #7fb79a; --accent-ink: #0f1512;
+    --good: #8fd3ac; --good-bg: #1f3a2b; --mid: #e3c56d; --mid-bg: #3a3220; --bad: #ec9a9a; --bad-bg: #3d2323;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #141916; --surface: #1c231f; --ink: #e6ece8; --muted: #9aa9a0; --line: #2e3833; --accent: #7fb79a; --accent-ink: #0f1512;
+  --good: #8fd3ac; --good-bg: #1f3a2b; --mid: #e3c56d; --mid-bg: #3a3220; --bad: #ec9a9a; --bad-bg: #3d2323;
+  color-scheme: dark;
+}
+body { background: var(--bg); color: var(--ink); font: 15px/1.55 var(--body); padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); padding-block: 28px 150px; }
+main { max-width: 1000px; margin: 0 auto; display: grid; gap: 28px; }
+h1 { font: 500 clamp(22px, 4vw, 30px)/1.2 var(--display); margin: 0; text-wrap: balance; }
+h2 { font: 600 17px/1.3 var(--body); margin: 0; }
+h3 { font: 600 12px/1.2 var(--body); text-transform: uppercase; letter-spacing: .06em; color: var(--muted); margin: 0; }
+.intro { display: grid; gap: 12px; max-width: 70ch; }
+.intro p { margin: 0; color: var(--muted); }
+.steps { margin: 0; padding-left: 20px; display: grid; gap: 6px; }
+.steps b { color: var(--ink); }
+.finding { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 12px 14px; }
+.flat { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 16px; display: grid; gap: 14px; }
+.flat header { display: flex; align-items: flex-start; gap: 12px; }
+.num { font: 500 18px var(--display); min-width: 28px; }
+.head { flex: 1; display: grid; gap: 2px; }
+.addr { margin: 0; color: var(--muted); font-size: 14px; }
+.pill { padding: 4px 10px; border-radius: 999px; font-size: 13px; font-weight: 600; white-space: nowrap; }
+.pill.good { background: var(--good-bg); color: var(--good); }
+.pill.mid { background: var(--mid-bg); color: var(--mid); }
+.pill.bad { background: var(--bad-bg); color: var(--bad); }
+.facts { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 8px 16px; margin: 0; }
+.facts div { display: grid; gap: 1px; }
+.facts dt { font-size: 12px; color: var(--muted); }
+.facts dd { margin: 0; font-weight: 500; font-variant-numeric: tabular-nums; }
+.sheet { width: 100%; max-width: 100%; border-radius: 6px; cursor: zoom-in; background: #fff; }
+.cols { display: grid; grid-template-columns: 1.3fr 1fr; gap: 20px; }
+@media (max-width: 720px) { .cols { grid-template-columns: 1fr; } }
+.cols section { display: grid; gap: 8px; align-content: start; }
+.cols p { margin: 0; }
+.sub { color: var(--muted); font-size: 13px; }
+.cols ul { margin: 0; padding-left: 18px; }
+.plain { list-style: none; padding: 0; display: grid; gap: 4px; }
+.scores { display: flex; flex-wrap: wrap; gap: 6px; }
+.scores span { border: 1px solid var(--line); border-radius: 6px; padding: 3px 8px; font-size: 13px; }
+.scores .pred { border-color: var(--accent); }
+.flat a { color: var(--accent); font-weight: 500; text-decoration: none; }
+.flat a:hover, .flat a:focus-visible { text-decoration: underline; }
+.fb { display: flex; flex-wrap: wrap; gap: 6px; }
+.fb button { padding: 9px 12px; border: 1px solid var(--line); border-radius: 8px; background: var(--bg); color: var(--ink); font: 500 14px var(--body); cursor: pointer; }
+.fb button:hover { border-color: var(--accent); }
+.fb button[aria-pressed="true"] { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
+button:focus-visible, input:focus-visible, textarea:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.note { width: 100%; box-sizing: border-box; padding: 9px 10px; border: 1px solid var(--line); border-radius: 8px; background: var(--bg); color: var(--ink); font: 14px var(--body); }
+.bar { position: fixed; left: 0; right: 0; bottom: 0; background: var(--surface); border-top: 1px solid var(--line); padding: 12px max(16px, env(safe-area-inset-right, 0px)) calc(12px + env(safe-area-inset-bottom, 0px)) max(16px, env(safe-area-inset-left, 0px)); }
+.bar-in { max-width: 1000px; margin: 0 auto; display: grid; gap: 6px; }
+.bar label { font-size: 13px; color: var(--muted); }
+.bar textarea { width: 100%; box-sizing: border-box; height: 52px; resize: vertical; padding: 8px 10px; border: 1px solid var(--line); border-radius: 8px; background: var(--bg); color: var(--ink); font: 13px/1.4 ui-monospace, Consolas, monospace; }
+dialog { border: 0; padding: 0; background: transparent; max-width: 98vw; }
+dialog::backdrop { background: rgb(0 0 0 / .85); }
+dialog img { max-width: 98vw; max-height: 94vh; border-radius: 8px; display: block; }
+</style>
+<main>
+  <div class="intro">
+    <h1>Как я выбираю квартиру</h1>
+    <p>Это сверка: на {{N}} реальных квартирах с ЦИАН показываю, как я их оцениваю. Отметьте, где вы согласны, а где нет.</p>
+    <ol class="steps">
+      <li><b>Жёсткие фильтры.</b> До 70 тысяч, от 29 м², не апартаменты, не первый этаж, выше 4-го только с лифтом, до метро не больше 15 минут пешком, только длительный срок. Отсеиваю комнаты, доли и подозрительно дешёвые объявления-приманки.</li>
+      <li><b>Место, 35%.</b> Время на метро до студий декора, флористики и архбюро (данные 2ГИС), большой парк рядом, сколько музеев и галерей в 25 минутах, близость метро.</li>
+      <li><b>Дом и этаж, 30%.</b> Кирпич и сталинки выше панели (в панели хуже слышимость). Этажи 2–5 лучше всего, после 9-го оценка падает. Штрафы за проспект и железную дорогу под окнами.</li>
+      <li><b>Цена, 20%.</b> Сравниваю с соседними объявлениями за м², считаю, сколько нужно на въезд: аренда, залог, комиссия.</li>
+      <li><b>Ремонт по фото, отдельным фильтром.</b> Смотрю до 12 фото. «База» — это то, что не поменять: пол, стены, кухня, санузел, двери. «Мебель и мелочи» можно убрать или заменить, они влияют слабо.</li>
+    </ol>
+    <p class="finding">Что уже видно: из 8 лучших по месту, дому и цене по ремонту проходят только 2. Сталинки в хороших местах до 70 тысяч чаще всего «бабушатники». Поэтому по фото придётся отсмотреть много объявлений.</p>
+  </div>
+  {{CARDS}}
+</main>
+<div class="bar"><div class="bar-in"><label for="summary">Строка для чата: скопируйте и пришлите мне</label><textarea id="summary" readonly></textarea></div></div>
+<dialog id="zoom"><img id="zoom-img" alt=""></dialog>
+<script>
+const votes = {};
+const n = {{N}};
+const label = { ok: "согласен", up: "ремонт лучше", down: "ремонт хуже" };
+const summary = document.getElementById("summary");
+function render() {
+  const parts = [];
+  for (let i = 1; i <= n; i++) {
+    const note = document.getElementById("note-" + i).value.trim();
+    parts.push(i + ":" + (votes[i] ? label[votes[i]] : "-") + (note ? " (" + note + ")" : ""));
+  }
+  summary.value = parts.join("; ");
+}
+document.querySelectorAll(".fb button").forEach(b => b.addEventListener("click", () => {
+  votes[b.dataset.n] = b.dataset.v;
+  b.parentElement.querySelectorAll("button").forEach(x => x.setAttribute("aria-pressed", x === b ? "true" : "false"));
+  render();
+}));
+document.querySelectorAll(".note").forEach(i => i.addEventListener("input", render));
+summary.addEventListener("focus", () => summary.select());
+const zoom = document.getElementById("zoom");
+document.querySelectorAll(".sheet").forEach(img => img.addEventListener("click", () => { document.getElementById("zoom-img").src = img.src; zoom.showModal(); }));
+zoom.addEventListener("click", () => zoom.close());
+render();
+</script>

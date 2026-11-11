@@ -1,0 +1,105 @@
+<title>Какой ремонт нам подходит</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Golos+Text:wght@400;500;600&family=Unbounded:wght@500&display=swap">
+<style>
+/* single column of photo strips, each with a 1-5 scale; summary bar pinned to the bottom */
+:root {
+  --bg: #f3f5f2;
+  --surface: #ffffff;
+  --ink: #1d2420;
+  --muted: #5d6a62;
+  --line: #d9dfda;
+  --accent: #3f6b55;
+  --accent-ink: #ffffff;
+  --display: "Unbounded", "Golos Text", system-ui, sans-serif;
+  --body: "Golos Text", system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #141916; --surface: #1c231f; --ink: #e6ece8; --muted: #9aa9a0; --line: #2e3833; --accent: #7fb79a; --accent-ink: #0f1512;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #141916; --surface: #1c231f; --ink: #e6ece8; --muted: #9aa9a0; --line: #2e3833; --accent: #7fb79a; --accent-ink: #0f1512;
+  color-scheme: dark;
+}
+body {
+  background: var(--bg); color: var(--ink); font: 15px/1.55 var(--body);
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 28px 140px;
+}
+main { max-width: 980px; margin: 0 auto; display: grid; gap: 28px; }
+h1 { font: 500 clamp(22px, 4vw, 30px)/1.2 var(--display); margin: 0; text-wrap: balance; }
+.intro { display: grid; gap: 10px; max-width: 65ch; color: var(--muted); }
+.intro p { margin: 0; }
+.scale { display: flex; flex-wrap: wrap; gap: 6px 16px; font-size: 13px; color: var(--muted); }
+.scale b { color: var(--ink); font-weight: 600; }
+.flat { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 14px; display: grid; gap: 12px; }
+.flat header { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.num { font: 500 18px var(--display); min-width: 28px; }
+.meta { color: var(--muted); font-variant-numeric: tabular-nums; flex: 1; min-width: 200px; }
+.flat a { color: var(--accent); text-decoration: none; font-weight: 500; }
+.flat a:hover, .flat a:focus-visible { text-decoration: underline; }
+.photos { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
+.photos img { width: 100%; aspect-ratio: 4 / 3; object-fit: cover; border-radius: 6px; background: var(--line); cursor: zoom-in; max-width: 100%; }
+@media (max-width: 640px) { .photos { grid-template-columns: 1fr; } }
+.rate { display: flex; gap: 6px; }
+.rate button {
+  flex: 1; max-width: 72px; padding: 10px 0; border: 1px solid var(--line); border-radius: 8px;
+  background: var(--bg); color: var(--ink); font: 600 16px var(--body); cursor: pointer;
+}
+.rate button:hover { border-color: var(--accent); }
+.rate button[aria-pressed="true"] { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
+button:focus-visible, input:focus-visible, textarea:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.note { width: 100%; box-sizing: border-box; padding: 9px 10px; border: 1px solid var(--line); border-radius: 8px; background: var(--bg); color: var(--ink); font: 14px var(--body); }
+.bar {
+  position: fixed; left: 0; right: 0; bottom: 0; background: var(--surface); border-top: 1px solid var(--line);
+  padding: 12px max(16px, env(safe-area-inset-right, 0px)) calc(12px + env(safe-area-inset-bottom, 0px)) max(16px, env(safe-area-inset-left, 0px));
+}
+.bar-in { max-width: 980px; margin: 0 auto; display: grid; gap: 6px; }
+.bar label { font-size: 13px; color: var(--muted); }
+.bar textarea { width: 100%; box-sizing: border-box; height: 52px; resize: vertical; padding: 8px 10px; border: 1px solid var(--line); border-radius: 8px; background: var(--bg); color: var(--ink); font: 13px/1.4 ui-monospace, Consolas, monospace; }
+dialog { border: 0; padding: 0; background: transparent; max-width: 96vw; }
+dialog::backdrop { background: rgb(0 0 0 / .8); }
+dialog img { max-width: 96vw; max-height: 90vh; border-radius: 8px; display: block; }
+</style>
+<main>
+  <div class="intro">
+    <h1>Какой ремонт нам подходит</h1>
+    <p>Здесь {{N}} реальных квартир с ЦИАН из текущей выборки, примерно до 70 тысяч. Оцените каждую по фото: насколько вам нравится сама квартира и ремонт, без учёта цены и района. По вашим оценкам я настрою, как отбираю квартиры по фото.</p>
+    <div class="scale"><span><b>1</b> ни за что</span><span><b>2</b> скорее нет</span><span><b>3</b> терпимо</span><span><b>4</b> хорошо</span><span><b>5</b> хочу туда</span></div>
+    <p>Нажмите на фото, чтобы увеличить. Когда закончите, скопируйте строку внизу и пришлите мне в чат.</p>
+  </div>
+  {{CARDS}}
+</main>
+<div class="bar"><div class="bar-in"><label for="summary">Строка для чата</label><textarea id="summary" readonly></textarea></div></div>
+<dialog id="zoom"><img id="zoom-img" alt=""></dialog>
+<script>
+const scores = {};
+const n = {{N}};
+const summary = document.getElementById("summary");
+function render() {
+  const parts = [];
+  for (let i = 1; i <= n; i++) {
+    const note = document.getElementById("note-" + i).value.trim();
+    parts.push(i + ":" + (scores[i] || "-") + (note ? " (" + note + ")" : ""));
+  }
+  summary.value = parts.join("; ");
+}
+document.querySelectorAll(".rate button").forEach(b => b.addEventListener("click", () => {
+  const k = b.dataset.n;
+  scores[k] = b.dataset.v;
+  b.parentElement.querySelectorAll("button").forEach(x => x.setAttribute("aria-pressed", x === b ? "true" : "false"));
+  render();
+}));
+document.querySelectorAll(".note").forEach(i => i.addEventListener("input", render));
+summary.addEventListener("focus", () => summary.select());
+const zoom = document.getElementById("zoom");
+document.querySelectorAll(".photos img").forEach(img => img.addEventListener("click", () => {
+  document.getElementById("zoom-img").src = img.src;
+  zoom.showModal();
+}));
+zoom.addEventListener("click", () => zoom.close());
+render();
+</script>

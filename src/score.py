@@ -6,6 +6,10 @@ from transit import LAT0, LON0, DLAT, DLON
 
 MATERIALS = {"brick": 1.0, "stalin": 1.0, "monolithBrick": 0.9, "monolith": 0.75, "block": 0.6, "wood": 0.3, "panel": 0.35}
 WALK_MAX = 15
+HUBS = [(55.776, 37.655), (55.757, 37.661), (55.743, 37.566), (55.776, 37.581), (55.730, 37.640), (55.794, 37.589), (55.793, 37.633), (55.757, 37.615), (55.654, 37.754), (55.676, 37.762)]
+ENSEMBLES = [(55.826, 37.637), (55.727, 37.582), (55.707, 37.585), (55.741, 37.535), (55.801, 37.505), (55.718, 37.608), (55.764, 37.639), (55.763, 37.592), (55.718, 37.674), (55.727, 37.566)]
+RED_FLAGS = {"предоплат": "prepayment", "без просмотра": "no_viewing", "только славян": "discriminatory", "посуточно": "daily_rent", "на короткий срок": "short_term", "сдается комната": "room", "сдаётся комната": "room", "комната в квартире": "room", "койко": "room", "долю ": "room", "доля в квартире": "room"}
+GOOD_TAGS = ["собственник", "без комиссии", "тихий", "сталин", "высокие потолки", "парк", "кирпич"]
 _state = {}
 
 
@@ -50,6 +54,26 @@ def heat():
     return _state["heat"]
 
 
+def heat_percentile(value):
+    if "heat_sorted" not in _state:
+        _state["heat_sorted"] = np.sort(heat()[load_layers()["walk_metro"] <= WALK_MAX])
+    return float(np.searchsorted(_state["heat_sorted"], value, side="right") / len(_state["heat_sorted"]))
+
+
+def haversine_m(lat1, lng1, lat2, lng2):
+    a = np.sin(np.radians(lat2 - lat1) / 2) ** 2 + np.cos(np.radians(lat1)) * np.cos(np.radians(lat2)) * np.sin(np.radians(lng2 - lng1) / 2) ** 2
+    return 12742000 * np.arcsin(np.sqrt(a))
+
+
+def near_any(points, lat, lng, radius):
+    return any(haversine_m(lat, lng, p[0], p[1]) <= radius for p in points)
+
+
+def description_flags(text):
+    low = (text or "").lower()
+    return [v for k, v in RED_FLAGS.items() if k in low], [k.replace(" ", "_") for k in GOOD_TAGS if k in low]
+
+
 def num(x):
     return None if x in (None, "") else float(x)
 
@@ -69,11 +93,11 @@ def building_score(material, year):
 
 
 def quiet_score(d):
-    s = 0.3 if d["noise_dist"] < 60 else 0.6 if d["noise_dist"] < 150 else 1.0
-    if d["rail_dist"] < 100:
-        s -= 0.3
-    if d["primary_dist"] < 40:
-        s -= 0.2
+    road = min(d["noise_dist"], d["primary_dist"])
+    s = 0.35 if road < 45 else 0.7 if road < 100 else 1.0
+    if d["noise_dist"] < 150:
+        s -= 0.15
+    s -= 0.3 if d["rail_dist"] < 100 else 0.1 if d["rail_dist"] < 200 else 0
     return float(np.clip(s, 0, 1))
 
 
@@ -86,7 +110,7 @@ def reject(reason):
     return {"rejected": True, "reason": reason}
 
 
-def listing_score(o, layers):
+def listing_score(o, layers, ratio=None):
     bt = o.get("bargainTerms") or {}
     b = o.get("building") or {}
     geo = o.get("geo") or {}
@@ -121,28 +145,59 @@ def listing_score(o, layers):
     owner = bool(o.get("isByHomeowner")) or (o.get("user") or {}).get("isAgent") is False
     fee_pct = bt.get("clientFee") if bt.get("clientFee") is not None else bt.get("agentFee")
     kitchen = num(o.get("kitchenArea"))
+    red, tags = description_flags(o.get("description"))
+    flags += list(dict.fromkeys(red))
+    job_p50 = float(layers["job_p50"][i, j])
+    soft = "room_or_share" if "room" in red else None
+    adj = 0.0
+    if ratio is not None and ratio < 0.72:
+        flags.append("suspiciously_cheap")
+        adj -= 0.25
+    if ratio is not None and ratio < 0.6:
+        flags.append("likely_bait")
+        soft = soft or "likely_bait"
+    if job_p50 > 50:
+        adj -= 0.1
+    if job_p50 <= 35:
+        adj += 0.05
+    if near_any(HUBS, lat, lng, 450):
+        flags.append("crowded_hub")
+        adj -= 0.1
+    year = b.get("buildYear")
+    if year and 1935 <= year <= 1958 and b.get("materialType") in ("brick", "stalin", None) and floors and 5 <= floors <= 12:
+        tags.append("stalinka")
+        adj += 0.06
+    if near_any(ENSEMBLES, lat, lng, 1000):
+        tags.append("soviet_ensemble")
+        adj += 0.04
+    price_abs = price_score(price, (bt.get("utilitiesTerms") or {}).get("includedInPrice"))
     comp = {
-        "location": float(heat()[i, j]),
+        "location": heat_percentile(heat()[i, j]),
         "building": building_score(b.get("materialType"), b.get("buildYear")),
         "floor": floor_score(floor, floors) if floor else 0.5,
         "quiet": quiet_score(noise),
-        "price_value": price_score(price, (bt.get("utilitiesTerms") or {}).get("includedInPrice")),
+        "price_value": price_abs if ratio is None else float(np.clip(1.25 - ratio * 0.5, 0, 1)) * 0.5 + price_abs * 0.5,
     }
     bonus = 0.05 * owner + 0.05 * (area >= 36) + 0.05 * (kitchen is not None and kitchen >= 8)
     if owner:
         flags.append("owner")
-    total = min(1.0, 0.35 * comp["location"] + 0.2 * comp["building"] + 0.1 * comp["floor"] + 0.15 * comp["quiet"] + 0.2 * comp["price_value"] + bonus)
+    total = min(1.0, 0.35 * comp["location"] + 0.2 * comp["building"] + 0.1 * comp["floor"] + 0.15 * comp["quiet"] + 0.2 * comp["price_value"] + bonus + adj)
+    total = 0.0 if soft else max(0.0, total)
     return {
         "rejected": False,
         "components": comp,
         "bonus": bonus,
         "flags": flags,
+        "tags": tags,
+        "soft_reject": soft,
+        "price_ratio": None if ratio is None else float(ratio),
         "total": float(total),
         "noise": noise,
         "move_in_cost": price + (num(bt.get("deposit")) or 0) + price * (num(fee_pct) or 0) / 100,
         "metro": metro[1] if metro else None,
         "metro_walk": walk,
-        "job_p50": float(layers["job_p50"][i, j]),
+        "job_p50": job_p50,
+        "job_share30": float(layers["job_share30"][i, j]),
         "park_walk": float(layers["park_walk"][i, j]),
         "culture25": int(layers["culture25"][i, j]),
         "tier": "A" if price <= 62000 else "B",
