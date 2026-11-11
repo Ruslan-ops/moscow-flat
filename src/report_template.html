@@ -1,10 +1,5 @@
-<!doctype html>
-<html lang="ru">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Квартира для нас</title>
-<meta name="color-scheme" content="light dark">
+<meta name="claude:viewport-fit-sides" content="cover">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Golos+Text:wght@400;500;600&family=Unbounded:wght@500&display=swap">
 <style>
 :root {
@@ -131,8 +126,6 @@ dialog::backdrop { background: rgb(0 0 0 / .85); }
 dialog img { max-width: 98vw; max-height: 94vh; border-radius: 8px; display: block; }
 @media (prefers-reduced-motion: reduce) { .flat, .pin { transition: none; } }
 </style>
-</head>
-<body>
 <main>
   <div class="top">
     <div class="intro">
@@ -356,5 +349,3 @@ const zoom = document.getElementById("zoom");
 document.querySelectorAll(".sheet").forEach(img => img.addEventListener("click", () => { document.getElementById("zoom-img").src = img.src; zoom.showModal(); }));
 zoom.addEventListener("click", () => zoom.close());
 </script>
-</body>
-</html>
