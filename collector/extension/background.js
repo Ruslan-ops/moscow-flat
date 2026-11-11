@@ -469,7 +469,7 @@ async function reportFailureAndAdvance(reason) {
       await serverFetch("/result", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ task_id: task.id, ok: false, kind: null, data: null, html: null }),
+        body: JSON.stringify({ task_id: task.id, ok: false, kind: null, data: null, html: null, reason }),
       });
     } catch (e) {
     }

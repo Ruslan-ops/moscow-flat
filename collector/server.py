@@ -462,7 +462,7 @@ class Collector:
                 self.save_html(FAILED_DIR, f"{time.strftime('%Y%m%d%H%M%S')}_{task_id}", html)
                 status = self.requeue_or_fail(task_row)
                 outcome = "invalid" if ok else "failed"
-                self.log_event("result_invalid_or_failed", {"task_id": task_id, "ok": ok, "kind": kind, "status": status})
+                self.log_event("result_invalid_or_failed", {"task_id": task_id, "ok": ok, "kind": kind, "status": status, "reason": reason})
             self.log_rate(issued.get("type") or task_row["type"], issued.get("delay") or 0, outcome, issued.get("interval"), timings)
             return {"status": "recorded", "outcome": outcome}
 

@@ -74,13 +74,13 @@ def element_polygon(el):
 
 
 def fetch_green():
-    body = f"""(
-nwr["leisure"~"^(park|garden)$"]({BBOX_STR});
-nwr["landuse"="forest"]({BBOX_STR});
-nwr["natural"="wood"]({BBOX_STR});
-nwr["boundary"="protected_area"]({BBOX_STR});
-);out geom;"""
-    els = fetch(body)
+    parts = [f'nwr["leisure"~"^(park|garden)$"]({BBOX_STR});', f'nwr["landuse"="forest"]({BBOX_STR});', f'nwr["natural"="wood"]({BBOX_STR});', f'nwr["boundary"="protected_area"]({BBOX_STR});']
+    els = []
+    for part in parts:
+        got = fetch(f"({part});out geom;")
+        print("green part", part[:30], None if got is None else len(got))
+        els += got or []
+    els = list({(e["type"], e["id"]): e for e in els}.values())
     feats = []
     for el in els:
         tags = el.get("tags", {})
