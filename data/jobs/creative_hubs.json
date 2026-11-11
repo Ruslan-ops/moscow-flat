@@ -1,0 +1,65 @@
+[
+ {
+  "name": "Флакон",
+  "type": "design cluster",
+  "lat": 55.80502,
+  "lng": 37.58553,
+  "weight": 0.9
+ },
+ {
+  "name": "Винзавод",
+  "type": "art cluster",
+  "lat": 55.75616,
+  "lng": 37.66546,
+  "weight": 0.9
+ },
+ {
+  "name": "Хлебозавод №9",
+  "type": "creative cluster",
+  "lat": 55.80734,
+  "lng": 37.58475,
+  "weight": 0.7
+ },
+ {
+  "name": "Даниловская мануфактура",
+  "type": "creative cluster",
+  "lat": 55.70116,
+  "lng": 37.62081,
+  "weight": 0.8
+ },
+ {
+  "name": "Красный Октябрь",
+  "type": "creative cluster",
+  "lat": 55.74513,
+  "lng": 37.61074,
+  "weight": 1.0
+ },
+ {
+  "name": "Artplay",
+  "type": "design cluster",
+  "lat": 55.75226,
+  "lng": 37.66977,
+  "weight": 1.0
+ },
+ {
+  "name": "Рижский рынок цветы",
+  "type": "flower market",
+  "lat": 55.79298,
+  "lng": 37.63695,
+  "weight": 0.8
+ },
+ {
+  "name": "ЦВЗ Манеж",
+  "type": "exhibition",
+  "lat": 55.75347,
+  "lng": 37.61233,
+  "weight": 0.6
+ },
+ {
+  "name": "ВДНХ",
+  "type": "exhibition",
+  "lat": 55.82097,
+  "lng": 37.64141,
+  "weight": 0.9
+ }
+]
