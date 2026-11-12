@@ -276,7 +276,7 @@ async function beginNavigate() {
 
     const remainingMs = () => Math.max(1000, tNavStart + NAV_TIMEOUT_MS - Date.now());
 
-    const isCian = task.type === "cian_search";
+    const isCian = task.type.startsWith("cian_");
     try {
       await withTimeout(
         chrome.scripting.executeScript({
@@ -353,7 +353,7 @@ async function beginNavigate() {
     await withTimeout(
       chrome.scripting.executeScript({
         target: { tabId: state.workerTabId },
-        files: task.type === "cian_search" ? ["extract.js", "cian.js", "cian_content.js"] : ["extract.js", "content.js"],
+        files: task.type === "cian_search" ? ["extract.js", "cian.js", "cian_content.js"] : task.type === "cian_item" ? ["extract.js", "cian.js", "cian_item_content.js"] : ["extract.js", "content.js"],
       }),
       EXTRACT_TIMEOUT_MS,
       "inject extract.js+content.js"
@@ -393,7 +393,7 @@ function waitForRealNavigation(tabId, task, tNavStart, timeoutMs) {
       } catch (e) {
         return false;
       }
-      if (task.type === "cian_search" && u.pathname.includes("captcha")) return true;
+      if (task.type.startsWith("cian_") && u.pathname.includes("captcha")) return true;
       if (task.type === "search" || task.type === "cian_search") {
         if (u.pathname !== taskPath) return false;
         if ((u.searchParams.get("p") || "1") !== taskPage) return false;

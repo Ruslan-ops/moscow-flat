@@ -1,44 +1,73 @@
 import json
+import os
+import sqlite3
+import sys
+from datetime import datetime
 
 ROOT = "D:/Users/Ruslan/VsCodeProjects/moscow-flat"
-OVERRIDES = {335289519: 3.5, 336160927: 3.5, 335106581: 3.5, 332162331: 3.5, 336068604: 3.5, 335502057: 3.5, 330098588: 3.0, 335316719: 3.5, 269077216: 4.5, 295837800: 3.5, 203784893: 3.5}
+sys.path.insert(0, f"{ROOT}/src")
+from realtor import inspect, load_extra
+
+OVERRIDES = {335289519: 3.5, 336160927: 3.5, 335106581: 3.5, 332162331: 3.5, 336068604: 3.5, 335502057: 3.5, 330098588: 3.0, 335316719: 3.5, 269077216: 4.5, 295837800: 3.5, 203784893: 3.5, 331068800: 4.0, 330776517: 3.5, 335420843: 3.5}
 EXCLUDE = {335531859}
-MAX_FINALISTS = 30
+MIN_PRED = 3
+SNAPSHOT = f"{ROOT}/data/report/shown.json"
 
 
 def verdict(pred):
     return "смотреть" if pred >= 4 else "запасной" if pred >= 3.5 else "под вопросом" if pred >= 3 else "нет"
 
 
-ranked = {x["cianId"]: x for x in json.load(open(f"{ROOT}/data/ranked/cian_ranked.json", encoding="utf-8"))}
-offers = {o["cianId"]: o for o in json.load(open(f"{ROOT}/data/cian/offers.json", encoding="utf-8"))}
-reviews = {r["cianId"]: r for r in json.load(open(f"{ROOT}/data/reviews/all_sonnet.json", encoding="utf-8"))}
-reviews.update({r["cianId"]: r for r in json.load(open(f"{ROOT}/data/reviews/align_opus.json", encoding="utf-8"))})
-avito = json.load(open(f"{ROOT}/data/report/avito_matches.json", encoding="utf-8"))
+def load(path):
+    return json.load(open(f"{ROOT}/{path}", encoding="utf-8"))
+
+
+ranked = {x["cianId"]: x for x in load("data/ranked/cian_ranked.json")}
+offers = {o["cianId"]: o for o in load("data/cian/offers.json")}
+reviews = {r["cianId"]: r for r in load("data/reviews/all_sonnet.json")}
+reviews.update({r["cianId"]: r for r in load("data/reviews/align_opus.json")})
+avito = load("data/report/avito_matches.json")
+conn = sqlite3.connect(f"{ROOT}/data/avito/collector.sqlite")
+checks = {int(c): (s, p, t) for c, s, p, t in conn.execute("SELECT cian_id, status, price, checked FROM cian_checks")}
+conn.close()
+fresh_snapshot = not os.path.exists(SNAPSHOT)
+shown = {} if fresh_snapshot else {int(k): v for k, v in json.load(open(SNAPSHOT, encoding="utf-8")).items()}
+today = datetime.now()
+stamp = today.strftime("%Y-%m-%d")
+extra = load_extra()
 out = []
 for cid, rv in reviews.items():
     pred = OVERRIDES.get(cid, rv["pred"])
     r = ranked.get(cid)
-    if pred < 3.5 or cid in EXCLUDE or r is None or r.get("rejected") or cid not in offers:
+    if pred < MIN_PRED or cid in EXCLUDE or r is None or r.get("rejected") or r.get("soft_reject") or r.get("duplicate_of") or cid not in offers:
         continue
     o = offers[cid]
     match = avito.get(str(cid))
+    check = checks.get(cid)
+    price = check[1] if check and check[1] else r["price"]
+    first = shown.setdefault(cid, {"first": "initial" if fresh_snapshot else stamp, "price": r["price"]})
+    status = "removed" if check and check[0] != "published" else "price" if price != first["price"] else "active"
     out.append({
-        "cianId": cid, "url": o["fullUrl"].split("?")[0], "price": r["price"], "totalArea": float(r["totalArea"]),
+        "cianId": cid, "url": o["fullUrl"].split("?")[0], "price": price, "price_was": first["price"] if price != first["price"] else None, "totalArea": float(r["totalArea"]),
         "kitchen": float(o["kitchenArea"]) if o.get("kitchenArea") else None, "rooms": o.get("roomsCount"),
         "floorNumber": r["floorNumber"], "floorsCount": r["floorsCount"], "materialType": r["materialType"], "buildYear": r["buildYear"],
-        "metro": r["metro"], "metro_walk": r["metro_walk"], "address": r["address"], "lat": o["geo"]["coordinates"]["lat"], "lng": o["geo"]["coordinates"]["lng"],
-        "move_in_cost": r["move_in_cost"], "deposit": o["bargainTerms"].get("deposit") or 0, "owner": bool(o.get("isByHomeowner")), "tier": r["tier"], "total": r["total"],
-        "review": {**{k: rv.get(k) for k in ("base", "soft", "summary", "fixable", "red_flags")}, "pred": pred, "verdict": verdict(pred)},
+        "metro": r["metro"], "metro_walk": r["metro_walk"], "address": r["address"], "okrug": r.get("okrug"), "lat": o["geo"]["coordinates"]["lat"], "lng": o["geo"]["coordinates"]["lng"],
+        "move_in_cost": r["move_in_cost"], "deposit": o["bargainTerms"].get("deposit") or 0, "fee": o["bargainTerms"].get("clientFee") or 0, "owner": bool(o.get("isByHomeowner")), "tier": "A" if price <= 62000 else "B", "total": r["total"],
+        "review": {**{k: rv.get(k) for k in ("base", "soft", "summary", "fixable", "red_flags", "light")}, "pred": pred, "verdict": verdict(pred)},
         "place": {"park_walk": r["park_walk"], "culture25": r["culture25"], "job_p50": r["job_p50"], "quiet": r["components"]["quiet"]},
+        "realtor": inspect(o, r, rv, extra, today),
         "avito_url": match["url"] if match else None,
+        "status": status, "checked": check[2][:10] if check else None, "created": (o.get("creationDate") or "")[:10],
         "final": 0.5 * r["total"] + 0.5 * (pred - 1) / 4,
     })
-out.sort(key=lambda f: -f["final"])
-top = out[:MAX_FINALISTS]
-top += [f for f in out[MAX_FINALISTS:] if f["tier"] == "A" and f["review"]["pred"] >= 4]
-for i, f in enumerate(top, 1):
+latest = max([v["first"] for v in shown.values() if v["first"] != "initial"], default=None)
+for f in out:
+    if f["status"] == "active" and shown[f["cianId"]]["first"] == latest:
+        f["status"] = "new"
+out.sort(key=lambda f: (f["status"] == "removed", -f["final"]))
+for i, f in enumerate(out, 1):
     f["rank"] = i
-json.dump(top, open(f"{ROOT}/data/report/finalists.json", "w", encoding="utf-8"), ensure_ascii=False, indent=1)
-json.dump([f["cianId"] for f in top], open(f"{ROOT}/data/report/finalist_ids.json", "w"))
-print(len(out), len(top), sum(f["tier"] == "A" for f in top), sum(f["review"]["pred"] >= 4 for f in top))
+json.dump(out, open(f"{ROOT}/data/report/finalists.json", "w", encoding="utf-8"), ensure_ascii=False, indent=1)
+json.dump([f["cianId"] for f in out if f["status"] != "removed"], open(f"{ROOT}/data/report/finalist_ids.json", "w"))
+json.dump(shown, open(SNAPSHOT, "w", encoding="utf-8"), ensure_ascii=False, indent=1)
+print(len(out), "A", sum(f["tier"] == "A" for f in out), "pred>=4", sum(f["review"]["pred"] >= 4 for f in out), "status", {s: sum(f["status"] == s for f in out) for s in ("new", "price", "removed", "active")})

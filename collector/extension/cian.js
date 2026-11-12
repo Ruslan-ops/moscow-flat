@@ -1,5 +1,7 @@
 (function () {
   const SERP_MARKER = /_cianConfig\[['"]frontend-serp['"]\]/;
+  const CARD_MARKER = /_cianConfig\[['"]frontend-offer-card['"]\]/;
+  const REMOVED_PHRASES = ["снято с публикации", "Объявление снято", "объявление удалено", "Страница не найдена"];
   const BLOCK_PHRASES = ["captcha", "Подтвердите, что вы не робот", "Доступ ограничен", "Ошибка 429"];
   const RAW_LIMIT = 100000;
   const OFFERS_PER_PAGE = 28;
@@ -46,9 +48,9 @@
     return -1;
   }
 
-  function concatArrays(text) {
+  function concatArrays(text, markerRe) {
     const arrays = [];
-    const marker = text.search(SERP_MARKER);
+    const marker = text.search(markerRe || SERP_MARKER);
     if (marker < 0) return arrays;
     const re = /\.concat\(\s*(?=\[)/g;
     re.lastIndex = marker;
@@ -144,6 +146,47 @@
     };
   }
 
+  function findOfferById(node, id, depth) {
+    if (!node || typeof node !== "object" || depth > 12) return null;
+    if (!Array.isArray(node) && String(node.cianId || "") === id && node.bargainTerms) return node;
+    for (const k of Object.keys(node)) {
+      const found = findOfferById(node[k], id, depth + 1);
+      if (found) return found;
+    }
+    return null;
+  }
+
+  function itemIdFromPath() {
+    const m = location.pathname.match(/\/(\d+)\/?$/);
+    return m ? m[1] : null;
+  }
+
+  function isRemovedPage() {
+    const text = document.body ? document.body.innerText : "";
+    return REMOVED_PHRASES.some((p) => text.includes(p));
+  }
+
+  function parseCard() {
+    const id = itemIdFromPath();
+    for (const text of scriptTexts()) {
+      if (!CARD_MARKER.test(text)) continue;
+      for (const arr of concatArrays(text, CARD_MARKER)) {
+        const offer = findOfferById(arr, id, 0);
+        if (offer) return offer;
+      }
+    }
+    return null;
+  }
+
+  function extractItem() {
+    const id = itemIdFromPath();
+    const offer = parseCard();
+    const removed = isRemovedPage();
+    const status = offer && offer.status ? (removed && offer.status === "published" ? "removed" : offer.status) : removed ? "removed" : "unknown";
+    const price = offer && offer.bargainTerms ? offer.bargainTerms.price || null : null;
+    return { cian_id: id, status, price };
+  }
+
   function scriptTexts() {
     return Array.from(document.querySelectorAll("script:not([src])"), (s) => s.textContent || "");
   }
@@ -199,7 +242,11 @@
     return new Promise((resolve) => {
       function check() {
         if (isNewDocument()) {
-          if (parseSerp()) {
+          if (taskInfo.type === "cian_item" && (parseCard() || isRemovedPage())) {
+            resolve({ ready: true, verified: true, kind: "cian_item" });
+            return;
+          }
+          if (taskInfo.type !== "cian_item" && parseSerp()) {
             resolve({ ready: true, verified: true, kind: "cian_search" });
             return;
           }
@@ -219,5 +266,5 @@
     });
   }
 
-  window.CianCollectorExtract = { parseSerp, extractSearch, detectBlock, waitForReady, concatArrays, findInitialState };
+  window.CianCollectorExtract = { parseSerp, extractSearch, extractItem, detectBlock, waitForReady, concatArrays, findInitialState };
 })();

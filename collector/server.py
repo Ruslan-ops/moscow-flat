@@ -289,6 +289,17 @@ class Collector:
                 first_seen TEXT NOT NULL,
                 last_seen TEXT NOT NULL
             );
+            CREATE TABLE IF NOT EXISTS cian_tags (
+                cian_id TEXT NOT NULL,
+                tag TEXT NOT NULL,
+                PRIMARY KEY (cian_id, tag)
+            );
+            CREATE TABLE IF NOT EXISTS cian_checks (
+                cian_id TEXT PRIMARY KEY,
+                status TEXT NOT NULL,
+                price INTEGER,
+                checked TEXT NOT NULL
+            );
             CREATE TABLE IF NOT EXISTS items (
                 item_id TEXT PRIMARY KEY,
                 json TEXT NOT NULL,
@@ -374,6 +385,12 @@ class Collector:
             ids += [self.enqueue_task("cian_search", f"{base}{sep}p={p}", {"page": p}, force) for p in range(1, pages + 1)]
         return ids
 
+    def seed_cian_refresh(self, base_urls, max_pages):
+        return [self.enqueue_task("cian_search", f"{base}{'&' if '?' in base else '?'}p=1", {"page": 1, "refresh": True, "max_pages": max_pages}, True) for base in base_urls]
+
+    def seed_cian_items(self, ids):
+        return [self.enqueue_task("cian_item", f"https://www.cian.ru/rent/flat/{i}/", {"cian_id": str(i)}, True) for i in ids]
+
     def seed_item_urls(self, urls, force=False):
         return [self.enqueue_task("item", normalize_url(u), {}, force) for u in urls]
 
@@ -447,18 +464,31 @@ class Collector:
         page = data.get("page")
         self.save_sample("cian", f"p{page}", html)
         stored = 0
+        fresh = 0
         for offer in data.get("offers") or []:
             if not offer.get("cian_id"):
                 continue
+            fresh += self.conn.execute("SELECT 1 FROM cian_offers WHERE cian_id = ?", (str(offer["cian_id"]),)).fetchone() is None
             compact = {**offer["compact"], "page": page}
+            if "repair%5B" in task_row["url"]:
+                self.conn.execute("INSERT OR IGNORE INTO cian_tags (cian_id, tag) VALUES (?, 'repair')", (str(offer["cian_id"]),))
             self.conn.execute(
                 "INSERT INTO cian_offers (cian_id, json, raw, first_seen, last_seen) VALUES (?, ?, ?, ?, ?) ON CONFLICT(cian_id) DO UPDATE SET json = excluded.json, raw = excluded.raw, last_seen = excluded.last_seen",
                 (str(offer["cian_id"]), json.dumps(compact, ensure_ascii=False), offer.get("raw"), now, now),
             )
             stored += 1
         meta = json.loads(task_row["meta"] or "{}")
-        meta.update({"total_results": data.get("total_results"), "total_pages": data.get("total_pages"), "offers": stored})
+        meta.update({"total_results": data.get("total_results"), "total_pages": data.get("total_pages"), "offers": stored, "fresh": fresh})
+        if meta.get("refresh") and fresh and page < min(meta["max_pages"], data.get("total_pages") or 0):
+            base = task_row["url"].rsplit("&p=", 1)[0]
+            self.enqueue_task("cian_search", f"{base}&p={page + 1}", {"page": page + 1, "refresh": True, "max_pages": meta["max_pages"]}, True)
         return json.dumps(meta, ensure_ascii=False)
+
+    def store_cian_item(self, data):
+        self.conn.execute(
+            "INSERT INTO cian_checks (cian_id, status, price, checked) VALUES (?, ?, ?, ?) ON CONFLICT(cian_id) DO UPDATE SET status = excluded.status, price = excluded.price, checked = excluded.checked",
+            (str(data["cian_id"]), data["status"], data.get("price"), now_iso()),
+        )
 
     def submit_result(self, task_id, ok, kind=None, data=None, html=None, reason=None, timings=None):
         with self.lock:
@@ -488,6 +518,12 @@ class Collector:
                 if not data.get("hits"):
                     self.log_event("empty_search", {"task_id": task_id, "url": task_row["url"]})
                     self.save_html(FAILED_DIR, f"empty_{task_id}", html)
+                self.pacing.record_success()
+                self.save_pacing()
+                outcome = "ok"
+            elif ok and kind == "cian_item" and data is not None and data.get("cian_id") and data.get("status") != "unknown":
+                self.store_cian_item(data)
+                self.set_task_status(task_id, "done")
                 self.pacing.record_success()
                 self.save_pacing()
                 outcome = "ok"
@@ -662,6 +698,11 @@ def main():
     p_cian.add_argument("file")
     p_cian.add_argument("--pages", type=int, default=CIAN_MAX_PAGES)
     p_cian.add_argument("--force", action="store_true")
+    p_refresh = sub.add_parser("seed-cian-refresh")
+    p_refresh.add_argument("file")
+    p_refresh.add_argument("--max-pages", type=int, default=8)
+    p_check = sub.add_parser("seed-cian-items")
+    p_check.add_argument("file")
     p_items = sub.add_parser("seed-items")
     p_items.add_argument("file")
     p_items.add_argument("--force", action="store_true")
@@ -674,6 +715,10 @@ def main():
         ids = collector.seed_pages(args.pages, args.force)
     elif args.cmd == "seed-cian":
         ids = collector.seed_cian_urls(read_lines(args.file), args.pages, args.force)
+    elif args.cmd == "seed-cian-refresh":
+        ids = collector.seed_cian_refresh(read_lines(args.file), args.max_pages)
+    elif args.cmd == "seed-cian-items":
+        ids = collector.seed_cian_items(json.load(open(args.file, encoding="utf-8")))
     elif args.cmd == "seed-searches":
         ids = collector.seed_search_urls(read_lines(args.file), args.force)
     else:
