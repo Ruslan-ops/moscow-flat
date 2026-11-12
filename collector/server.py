@@ -368,7 +368,7 @@ class Collector:
             except sqlite3.IntegrityError:
                 if not force:
                     return None
-                cur = self.conn.execute("UPDATE tasks SET status = 'queued', attempts = 0, updated = ? WHERE url = ? AND status != 'in_progress'", (now, url))
+                cur = self.conn.execute("UPDATE tasks SET status = 'queued', attempts = 0, meta = ?, updated = ? WHERE url = ? AND status != 'in_progress'", (json.dumps(meta or {}, ensure_ascii=False), now, url))
                 self.conn.commit()
                 return cur.rowcount or None
 
@@ -385,8 +385,8 @@ class Collector:
             ids += [self.enqueue_task("cian_search", f"{base}{sep}p={p}", {"page": p}, force) for p in range(1, pages + 1)]
         return ids
 
-    def seed_cian_refresh(self, base_urls, max_pages):
-        return [self.enqueue_task("cian_search", f"{base}{'&' if '?' in base else '?'}p=1", {"page": 1, "refresh": True, "max_pages": max_pages}, True) for base in base_urls]
+    def seed_cian_refresh(self, base_urls, max_pages, page=1):
+        return [self.enqueue_task("cian_search", f"{base}{'&' if '?' in base else '?'}p={page}", {"page": page, "refresh": True, "max_pages": max_pages}, True) for base in base_urls]
 
     def seed_cian_items(self, ids):
         return [self.enqueue_task("cian_item", f"https://www.cian.ru/rent/flat/{i}/", {"cian_id": str(i)}, True) for i in ids]
@@ -701,6 +701,7 @@ def main():
     p_refresh = sub.add_parser("seed-cian-refresh")
     p_refresh.add_argument("file")
     p_refresh.add_argument("--max-pages", type=int, default=8)
+    p_refresh.add_argument("--page", type=int, default=1)
     p_check = sub.add_parser("seed-cian-items")
     p_check.add_argument("file")
     p_items = sub.add_parser("seed-items")
@@ -716,7 +717,7 @@ def main():
     elif args.cmd == "seed-cian":
         ids = collector.seed_cian_urls(read_lines(args.file), args.pages, args.force)
     elif args.cmd == "seed-cian-refresh":
-        ids = collector.seed_cian_refresh(read_lines(args.file), args.max_pages)
+        ids = collector.seed_cian_refresh(read_lines(args.file), args.max_pages, args.page)
     elif args.cmd == "seed-cian-items":
         ids = collector.seed_cian_items(json.load(open(args.file, encoding="utf-8")))
     elif args.cmd == "seed-searches":

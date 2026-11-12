@@ -55,6 +55,8 @@ h1 { font: 600 clamp(20px, 3vw, 26px)/1.2 var(--display); margin: 0; }
   .stamp { font-size: 11.5px; }
   .filters { top: env(safe-area-inset-top, 0px); max-height: 75dvh; overflow-y: auto; gap: 8px 12px; }
   .filters:not(.open) > :not(.pri):not(#toggleMore):not(.count) { display: none; }
+  .filters:not(.open) .pri > span, .filters:not(.open) .pri input { display: none; }
+  .filters:not(.open) { padding-block: 8px; }
   .filters .count { margin-left: 0; flex-basis: 100%; font-size: 12.5px; }
   .split { grid-template-columns: 1fr; }
   .mapcol { position: fixed; inset: 0 0 calc(56px + env(safe-area-inset-bottom, 0px)) 0; height: auto; top: 0; z-index: 1200; }
@@ -91,7 +93,22 @@ h1 { font: 600 clamp(20px, 3vw, 26px)/1.2 var(--display); margin: 0; }
 .facts div { display: grid; }
 .facts dt { font-size: 11.5px; color: var(--muted); }
 .facts dd { margin: 0; font-weight: 600; font-variant-numeric: tabular-nums; }
-.sheet { width: 100%; max-width: 100%; height: auto; border-radius: 8px; background: #fff; display: block; aspect-ratio: 4 / 2.25; object-fit: contain; cursor: zoom-in; }
+.gal { position: relative; min-width: 0; }
+.flat { grid-template-columns: minmax(0, 1fr); }
+.strip { display: flex; overflow-x: auto; scroll-snap-type: x mandatory; border-radius: 8px; background: #fff; scrollbar-width: none; overscroll-behavior-x: contain; }
+.strip::-webkit-scrollbar { display: none; }
+.strip img { flex: 0 0 100%; width: 100%; max-width: 100%; aspect-ratio: 4 / 3; object-fit: contain; scroll-snap-align: center; display: block; cursor: zoom-in; background: #fff; }
+.strip img.sheet { aspect-ratio: 4 / 3; }
+.gnav { position: absolute; top: 50%; transform: translateY(-50%); width: 38px; height: 38px; border-radius: 50%; border: 0; background: rgb(0 0 0 / .5); color: #fff; font-size: 20px; line-height: 1; cursor: pointer; display: grid; place-items: center; }
+.gnav.prev { left: 8px; } .gnav.next { right: 8px; }
+.gcount { position: absolute; right: 8px; bottom: 8px; background: rgb(0 0 0 / .55); color: #fff; font-size: 12px; padding: 2px 8px; border-radius: 999px; font-variant-numeric: tabular-nums; pointer-events: none; }
+@media (hover: none) { .gnav { display: none; } }
+.viewer { position: fixed; inset: 0; z-index: 3000; background: #000; display: grid; grid-template-rows: auto minmax(0, 1fr); grid-template-columns: minmax(0, 1fr); padding-top: env(safe-area-inset-top, 0px); padding-bottom: env(safe-area-inset-bottom, 0px); }
+.viewer .vbar { display: flex; justify-content: space-between; align-items: center; color: #fff; padding: 8px 14px; font-variant-numeric: tabular-nums; }
+.viewer .vbar button { background: none; border: 0; color: #fff; font-size: 26px; cursor: pointer; padding: 4px 8px; }
+.viewer .strip { border-radius: 0; background: #000; height: 100%; }
+.viewer .strip img { aspect-ratio: auto; height: 100%; background: #000; cursor: default; }
+.viewer .gal { min-height: 0; }
 .two { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
 @media (max-width: 640px) { .two { grid-template-columns: 1fr; } .fh { flex-wrap: wrap; } .price { text-align: left; } }
 .two section { display: grid; gap: 6px; align-content: start; min-width: 0; }
@@ -146,8 +163,6 @@ button.b.bad::after { content: " ▾"; }
 @media (prefers-reduced-motion: reduce) { .rsec.flash { animation: none; } }
 .leaflet-control-layers-toggle { background-image: none; width: auto; height: auto; padding: 6px 10px; color: #222; font-weight: 600; }
 .leaflet-control-layers-toggle::after { content: "Слои"; }
-.zoomimg { position: fixed; inset: 0; z-index: 3000; background: rgb(0 0 0 / .85); display: grid; place-items: center; padding: 16px; cursor: zoom-out; }
-.zoomimg img { max-width: 100%; max-height: 100%; }
 </style>
 </head>
 <body>
@@ -304,6 +319,40 @@ function select(id, fly) {
   selected = id;
 }
 
+const big = (u) => u.replace(/-\d+\.jpg$/, "-1.jpg");
+function gallery(f) {
+  const slides = (P[f.cianId] ? [`<img class="sheet" data-src="${f.cianId}" alt="Коллаж фото квартиры у м. ${esc(f.metro)}">`] : []).concat((f.photos || []).map((u, k) => `<img loading="lazy" src="" data-url="${esc(big(u))}" alt="Фото ${k + 1}">`));
+  if (!slides.length) return "";
+  const n = slides.length;
+  return `<div class="gal" data-n="${n}"><div class="strip">${slides.join("")}</div>${n > 1 ? '<button type="button" class="gnav prev" aria-label="Назад">‹</button><button type="button" class="gnav next" aria-label="Вперёд">›</button>' : ""}<span class="gcount">1 / ${n}</span></div>`;
+}
+function wireGallery(g) {
+  const strip = g.querySelector(".strip"), imgs = [...strip.children], n = imgs.length, cnt = g.querySelector(".gcount");
+  const load = (i) => { const im = imgs[i]; if (im && im.dataset.url && !im.getAttribute("src")) im.src = im.dataset.url; };
+  const idx = () => Math.round(strip.scrollLeft / strip.clientWidth);
+  const go = (i) => { i = Math.max(0, Math.min(n - 1, i)); load(i); load(i + 1); strip.scrollTo({left: i * strip.clientWidth, behavior: "smooth"}); };
+  strip.addEventListener("scroll", () => { const i = idx(); cnt.textContent = `${i + 1} / ${n}`; load(i); load(i + 1); }, {passive: true});
+  g.querySelector(".prev")?.addEventListener("click", () => go(idx() - 1));
+  g.querySelector(".next")?.addEventListener("click", () => go(idx() + 1));
+  g.go = go; g.idx = idx; load(1);
+}
+function openViewer(g) {
+  const start = g.idx();
+  const v = document.createElement("div");
+  v.className = "viewer";
+  v.innerHTML = `<div class="vbar"><span class="vc"></span><button type="button" aria-label="Закрыть">✕</button></div>`;
+  const ng = g.cloneNode(true);
+  ng.querySelectorAll("img").forEach((im) => { if (im.dataset.url) im.removeAttribute("src"); });
+  v.append(ng);
+  document.body.append(v);
+  document.body.style.overflow = "hidden";
+  ng.querySelectorAll("img.sheet").forEach((im, k) => { im.src = g.querySelector("img.sheet").src; });
+  wireGallery(ng);
+  const close = () => { v.remove(); document.body.style.overflow = ""; };
+  v.querySelector(".vbar button").onclick = close;
+  v.close = close;
+  requestAnimationFrame(() => { ng.querySelector(".strip").scrollLeft = start * ng.querySelector(".strip").clientWidth; ng.go(start); });
+}
 const list = (items, cls) => items && items.length ? `<ul class="${cls}">${items.map((x) => `<li>${esc(x)}</li>`).join("")}</ul>` : "";
 function card(f, i) {
   const rv = f.review, r = f.realtor, pl = f.place, st = STATUS[f.status];
@@ -315,7 +364,7 @@ function card(f, i) {
 <div class="price"><b>${money(f.price)} ₽</b>${f.price_was ? `<s>было ${money(f.price_was)} ₽</s>` : ""}<span class="tg">торг: ${money(r.target_price)} ₽</span></div></div>
 <div class="badges"><span class="b ${repairClass(rv.pred)}">ремонт ${num(rv.pred)} · ${esc(rv.verdict)}</span>${st ? `<span class="b ${st[1]}">${st[0]}</span>` : ""}${f.owner ? '<span class="b good">собственник</span>' : ""}${f.fee ? `<span class="b plain">комиссия ${f.fee}%</span>` : '<span class="b good">без комиссии</span>'}${r.minus.length ? `<button type="button" class="b bad" data-minus="${f.cianId}" title="Показать минусы">минусов: ${r.minus.length}</button>` : ""}${days ? `<span class="b plain">опубликовано ${days}</span>` : ""}</div>
 <dl class="facts"><div><dt>Площадь</dt><dd>${num(f.totalArea)} м²</dd></div>${f.kitchen ? `<div><dt>Кухня</dt><dd>${num(f.kitchen)} м²</dd></div>` : ""}<div><dt>Этаж</dt><dd>${f.floorNumber} из ${f.floorsCount}</dd></div><div><dt>Дом</dt><dd>${MATERIAL[f.materialType] || "—"}${f.buildYear ? ", " + f.buildYear : ""}</dd></div><div><dt>На въезд</dt><dd>${money(f.move_in_cost)} ₽</dd></div><div><dt>Залог</dt><dd>${money(f.deposit)} ₽</dd></div></dl>
-${P[f.cianId] ? `<img class="sheet" data-src="${f.cianId}" alt="Фото квартиры у м. ${esc(f.metro)}">` : ""}
+${gallery(f)}
 <div class="two"><section><h4>Ремонт по фото</h4><p>${esc(rv.summary)}</p><p class="sub">база ${num(rv.base)} · мебель и мелочи ${num(rv.soft)}${rv.light ? " · " + esc(rv.light) : ""}</p>${rv.fixable && rv.fixable.length ? `<p class="sub">Можно убрать или заменить:</p>${list(rv.fixable, "")}` : ""}${rv.red_flags && rv.red_flags.length ? `<p class="sub">Заметно на фото:</p>${list(rv.red_flags, "checkl")}` : ""}</section>
 <section class="rsec" id="rs-${f.cianId}"><h4>Глазами риелтора${r.minus.length ? ` · минусов: ${r.minus.length}` : ""}</h4>${list(r.minus, "minus") || '<p class="sub">Серьёзных минусов по данным не видно.</p>'}${list(r.check, "checkl")}${list(r.plus, "plus")}</section></div>
 <details class="more2"><summary>Торг, место и дорога</summary><div class="two">
@@ -351,6 +400,7 @@ function apply() {
   shown.sort((a, b) => (a.status === "removed") - (b.status === "removed") || SORTS[s.sort](a, b, s));
   $("list").innerHTML = shown.length ? shown.map(card).join("") : '<p class="empty">Под эти фильтры ничего не подходит. Поднимите цену или снизьте планку ремонта.</p>';
   $("list").querySelectorAll("img.sheet").forEach((im) => io.observe(im));
+  $("list").querySelectorAll(".gal").forEach(wireGallery);
   const ids = new Set(shown.map((f) => f.cianId));
   markers.forEach((m, id) => ids.has(id) ? m.addTo(map) : m.remove());
   $("count").innerHTML = `Показано <b>${shown.length}</b> из ${F.length} · до 60 тыс.: <b>${shown.filter((f) => f.price <= 60000).length}</b>`;
@@ -361,15 +411,22 @@ $("list").addEventListener("click", (e) => {
   if (mb) { const sec = $(`rs-${mb.dataset.minus}`); sec.scrollIntoView({behavior: "smooth", block: "center"}); sec.classList.remove("flash"); void sec.offsetWidth; sec.classList.add("flash"); return; }
   const b = e.target.closest("[data-map]");
   if (b) { if (mobile()) setView("map"); select(+b.dataset.map, true); return; }
-  const im = e.target.closest("img.sheet");
-  if (im && im.src) { const z = document.createElement("div"); z.className = "zoomimg"; z.innerHTML = `<img src="${im.src}" alt="">`; z.onclick = () => z.remove(); document.body.append(z); }
+  const im = e.target.closest(".strip img");
+  if (im) openViewer(im.closest(".gal"));
 });
 $("filters").addEventListener("input", apply);
 $("filters").addEventListener("submit", (e) => e.preventDefault());
 function setTop() { document.documentElement.style.setProperty("--ftop", $("filters").offsetHeight + "px"); map.invalidateSize(); }
 $("toggleMore").addEventListener("click", () => { const m = $("more"); m.hidden = !m.hidden; $("filters").classList.toggle("open", !m.hidden); $("toggleMore").setAttribute("aria-pressed", !m.hidden); setTop(); });
 $("reset").addEventListener("click", () => { $("filters").reset(); state.rmin = RMIN; apply(); });
-document.addEventListener("keydown", (e) => { if (e.key === "Escape") document.querySelectorAll(".zoomimg").forEach((z) => z.remove()); });
+document.addEventListener("keydown", (e) => {
+  const v = document.querySelector(".viewer");
+  if (!v) return;
+  const g = v.querySelector(".gal");
+  if (e.key === "Escape") v.close();
+  if (e.key === "ArrowRight") g.go(g.idx() + 1);
+  if (e.key === "ArrowLeft") g.go(g.idx() - 1);
+});
 addEventListener("resize", setTop);
 setTop();
 apply();

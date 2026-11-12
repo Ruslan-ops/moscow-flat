@@ -56,7 +56,7 @@ for cid, rv in reviews.items():
         "review": {**{k: rv.get(k) for k in ("base", "soft", "summary", "fixable", "red_flags", "light")}, "pred": pred, "verdict": verdict(pred)},
         "place": {"park_walk": r["park_walk"], "culture25": r["culture25"], "job_p50": r["job_p50"], "quiet": r["components"]["quiet"]},
         "realtor": inspect(o, r, rv, extra, today),
-        "avito_url": match["url"] if match else None,
+        "avito_url": match["url"] if match else None, "photos": o.get("photos") or [],
         "status": status, "checked": check[2][:10] if check else None, "created": (o.get("creationDate") or "")[:10],
         "final": 0.5 * r["total"] + 0.5 * (pred - 1) / 4,
     })
