@@ -93,6 +93,17 @@ def inspect(offer, r, review, extra, today):
         check.append(f"Мест для хранения мало: {rv.get('storage_note')}")
     elif rv.get("storage") == "не видно":
         check.append("На фото не видно шкафов. Спросить, где хранить одежду.")
+    if rv.get("toilet_narrow"):
+        check.append("Отдельный туалет узкий: колени почти у двери.")
+    minus += [f"{x[:1].upper()}{x[1:]}." for x in rv.get("kitchen_hazard") or []]
+    if rv.get("desk") == "негде":
+        minus.append(f"Негде поставить рабочий стол: {rv.get('desk_note')}")
+    elif rv.get("desk") == "не видно":
+        check.append("По фото непонятно, куда поставить рабочий стол.")
+    if rv.get("owner_usable"):
+        plus.append("Остаётся мебель хозяев: " + ", ".join(rv["owner_usable"]) + ".")
+    if rv.get("work_storage") == "есть":
+        plus.append(f"Есть где хранить материалы для работы: {rv.get('work_storage_note')}")
     check += [f"На фото: {x}" for x in rv.get("other") or []]
     fee = bt.get("clientFee") or 0
     if fee:
@@ -122,7 +133,7 @@ def inspect(offer, r, review, extra, today):
     if ratio and ratio >= 1.05:
         levers += 1
         bargain.append(f"Метр здесь на {round((ratio - 1) * 100)}% дороже, чем в похожих квартирах рядом.")
-    fixable = (review or {}).get("fixable") or []
+    fixable = ((review or {}).get("fixable") or []) + ((review or {}).get("owner_remove") or [])
     if fixable:
         bargain.append("Попросить вывезти или заменить: " + ", ".join(fixable[:3]) + ".")
     if review and (review.get("bathroom_ok") is False or review.get("kitchen_ok") is False):
