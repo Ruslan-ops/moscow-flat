@@ -1,7 +1,9 @@
 import base64
 import io
 import json
+import os
 import sys
+import time
 import requests
 from PIL import Image
 
@@ -10,8 +12,13 @@ TILE_W, TILE_H, COLS = 320, 240, 4
 
 
 def fetch(url):
-    r = requests.get(url, timeout=30)
-    return Image.open(io.BytesIO(r.content)).convert("RGB") if r.status_code == 200 else None
+    for attempt in range(3):
+        try:
+            r = requests.get(url, timeout=30)
+            return Image.open(io.BytesIO(r.content)).convert("RGB") if r.status_code == 200 else None
+        except requests.RequestException:
+            time.sleep(3 * (attempt + 1))
+    return None
 
 
 def montage(images, path):
@@ -44,4 +51,6 @@ if __name__ == "__main__":
     else:
         offers = {o["cianId"]: o for o in json.load(open(f"{ROOT}/data/cian/offers.json", encoding="utf-8"))}
         for cid in json.load(open(sys.argv[2], encoding="utf-8")):
-            print(cid, sheet_for_offer(offers[cid]))
+            if not os.path.exists(f"{ROOT}/data/photos/{cid}.jpg"):
+                print(cid, sheet_for_offer(offers[cid]))
+                time.sleep(0.5)

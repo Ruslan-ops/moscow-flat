@@ -60,9 +60,11 @@ def prepare(limit, max_price):
     repair = repair_ids()
     ranked = load("data/ranked/cian_ranked.json")
     cand = [r for r in ranked if not r["soft_reject"] and not r.get("duplicate_of") and r["cianId"] not in done and r["total"] >= MIN_TOTAL and r["price"] <= max_price]
-    cand.sort(key=lambda r: (r["cianId"] not in repair, -r["total"]))
+    seen = {o["cianId"]: o["first_seen"] for o in load("data/cian/offers.json")}
+    since = max(seen[i] for i in done if i in seen)
+    cand.sort(key=lambda r: (seen[r["cianId"]] <= since, r["cianId"] not in repair, -r["total"]))
     picked = [r["cianId"] for r in cand[:limit]]
-    print("unreviewed candidates", len(cand), "picked", len(picked), "with repair tag", sum(r["cianId"] in repair for r in cand[:limit]))
+    print("unreviewed candidates", len(cand), "new since", since, sum(seen[r["cianId"]] > since for r in cand), "picked", len(picked), "with repair tag", sum(r["cianId"] in repair for r in cand[:limit]))
     if not picked:
         return
     for f in glob.glob(f"{NEW}/*.json"):

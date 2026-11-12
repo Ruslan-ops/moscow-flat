@@ -18,7 +18,7 @@
    "building": 1.0,
    "floor": 1.0,
    "quiet": 1.0,
-   "price_value": 0.6488555830647909
+   "price_value": 0.6479166666666667
   },
   "bonus": 0.1,
   "flags": [],
@@ -28,7 +28,7 @@
    "stalinka"
   ],
   "soft_reject": null,
-  "price_ratio": 0.7795776677408368,
+  "price_ratio": 0.7833333333333332,
   "total": 1.0,
   "noise": {
    "noise_dist": 8483.230559448148,
@@ -861,6 +861,48 @@
   "duplicates": []
  },
  {
+  "cianId": 336105307,
+  "fullUrl": "https://www.cian.ru/rent/flat/336105307/?context=4.9k-jzLrEcUQ.vdIRYh2Cco9jCkkqBO8UXdbEsy34DS58KMhDv68ZoDBJvpXIt65vvXJVJQLuaarFEsDXjoTXuHQvDA&mlSearchSessionGuid=5cff628b52b0499521578da481d7d9d6",
+  "price": 55000,
+  "totalArea": "40.0",
+  "floorNumber": 10,
+  "floorsCount": 16,
+  "materialType": "monolith",
+  "buildYear": 2021,
+  "address": "Москва, СВАО, р-н Марьина роща, м. Марьина Роща, Шереметьевская улица, 13К1",
+  "okrug": "СВАО",
+  "lat": 55.796997,
+  "lng": 37.615371,
+  "rejected": false,
+  "components": {
+   "location": 0.9435682602267127,
+   "building": 0.75,
+   "floor": 0.6,
+   "quiet": 1.0,
+   "price_value": 0.9297667342799188
+  },
+  "bonus": 0.1,
+  "flags": [],
+  "tags": [],
+  "soft_reject": null,
+  "price_ratio": 0.7809330628803245,
+  "total": 0.9762022379353332,
+  "noise": {
+   "noise_dist": 11275.310809013006,
+   "rail_dist": 406.11626486038705,
+   "primary_dist": 427.07928622856866
+  },
+  "move_in_cost": 126500.0,
+  "metro": "Марьина Роща",
+  "metro_walk": 3,
+  "job_p50": 38.40541458129883,
+  "job_share30": 0.2843525858814644,
+  "park_walk": 16.663404619185435,
+  "culture25": 77,
+  "tier": "A",
+  "duplicates": []
+ },
+ {
   "cianId": 177295192,
   "fullUrl": "https://www.cian.ru/rent/flat/177295192/?context=4.woQBwW7l4Z8.aXw1t1lUgSs2tVfB4Wel7OUyif-Ss27mt1CSqfJY-bVM3KjlD1rAJvJVr7KnoXFDM9lQAljjaP-T0g&mlSearchSessionGuid=af60fe5eef3faa1987c0e177e4c735cb",
   "price": 67000,
@@ -902,52 +944,6 @@
   "job_share30": 0.29652699131747806,
   "park_walk": 4.201159372799694,
   "culture25": 131,
-  "tier": "B",
-  "duplicates": []
- },
- {
-  "cianId": 335368889,
-  "fullUrl": "https://www.cian.ru/rent/flat/335368889/?context=4.r_pgJT3A88c.ttvQLu_IHdMrWhTVIVPMJ4iuBvmsaZeJ3VaC21ZoOZLJTzFlaoUMTNH_rb3jZEwDp-LPG_3Mh4UD5w&mlSearchSessionGuid=ef6b7d241032b0c555036bcb44ed83f8",
-  "price": 63000,
-  "totalArea": "56.0",
-  "floorNumber": 13,
-  "floorsCount": 15,
-  "materialType": "brick",
-  "buildYear": 1972,
-  "address": "Москва, САО, р-н Тимирязевский, м. Тимирязевская, улица Дубки, 4А",
-  "okrug": "САО",
-  "lat": 55.818134,
-  "lng": 37.569099,
-  "rejected": false,
-  "components": {
-   "location": 0.9148595367175949,
-   "building": 1.0,
-   "floor": 0.6,
-   "quiet": 1.0,
-   "price_value": 0.686364145031334
-  },
-  "bonus": 0.1,
-  "flags": [
-   "prepayment"
-  ],
-  "tags": [
-   "собственник"
-  ],
-  "soft_reject": null,
-  "price_ratio": 0.7795434198746642,
-  "total": 0.9674736668574251,
-  "noise": {
-   "noise_dist": 9327.09533865127,
-   "rail_dist": 448.30816510732905,
-   "primary_dist": 356.22478466264135
-  },
-  "move_in_cost": 157500.0,
-  "metro": "Тимирязевская",
-  "metro_walk": 5,
-  "job_p50": 45.05266189575195,
-  "job_share30": 0.11466591166477914,
-  "park_walk": 0.18507008709674616,
-  "culture25": 15,
   "tier": "B",
   "duplicates": []
  },
@@ -1043,6 +1039,52 @@
   "job_share30": 0.07521706304265761,
   "park_walk": 3.584168222054045,
   "culture25": 17,
+  "tier": "B",
+  "duplicates": []
+ },
+ {
+  "cianId": 335368889,
+  "fullUrl": "https://www.cian.ru/rent/flat/335368889/?context=4.r_pgJT3A88c.ttvQLu_IHdMrWhTVIVPMJ4iuBvmsaZeJ3VaC21ZoOZLJTzFlaoUMTNH_rb3jZEwDp-LPG_3Mh4UD5w&mlSearchSessionGuid=ef6b7d241032b0c555036bcb44ed83f8",
+  "price": 63000,
+  "totalArea": "56.0",
+  "floorNumber": 13,
+  "floorsCount": 15,
+  "materialType": "brick",
+  "buildYear": 1972,
+  "address": "Москва, САО, р-н Тимирязевский, м. Тимирязевская, улица Дубки, 4А",
+  "okrug": "САО",
+  "lat": 55.818134,
+  "lng": 37.569099,
+  "rejected": false,
+  "components": {
+   "location": 0.9148595367175949,
+   "building": 1.0,
+   "floor": 0.6,
+   "quiet": 1.0,
+   "price_value": 0.6825393655864902
+  },
+  "bonus": 0.1,
+  "flags": [
+   "prepayment"
+  ],
+  "tags": [
+   "собственник"
+  ],
+  "soft_reject": null,
+  "price_ratio": 0.7948425376540391,
+  "total": 0.9667087109684563,
+  "noise": {
+   "noise_dist": 9327.09533865127,
+   "rail_dist": 448.30816510732905,
+   "primary_dist": 356.22478466264135
+  },
+  "move_in_cost": 157500.0,
+  "metro": "Тимирязевская",
+  "metro_walk": 5,
+  "job_p50": 45.05266189575195,
+  "job_share30": 0.11466591166477914,
+  "park_walk": 0.18507008709674616,
+  "culture25": 15,
   "tier": "B",
   "duplicates": []
  },
@@ -1241,7 +1283,7 @@
    "building": 1.0,
    "floor": 0.85,
    "quiet": 1.0,
-   "price_value": 0.5338768115942029
+   "price_value": 0.5332005520978584
   },
   "bonus": 0.1,
   "flags": [
@@ -1251,8 +1293,8 @@
    "собственник"
   ],
   "soft_reject": null,
-  "price_ratio": 1.0144927536231885,
-  "total": 0.9585693495046463,
+  "price_ratio": 1.0171977916085662,
+  "total": 0.9584340976053775,
   "noise": {
    "noise_dist": 10302.117898786097,
    "rail_dist": 254.16038519893613,
@@ -1332,7 +1374,7 @@
    "building": 1.0,
    "floor": 1.0,
    "quiet": 1.0,
-   "price_value": 0.4615128179484615
+   "price_value": 0.46331908831908836
   },
   "bonus": 0.1,
   "flags": [
@@ -1342,8 +1384,8 @@
    "парк"
   ],
   "soft_reject": null,
-  "price_ratio": 1.153948728206154,
-  "total": 0.9507303605339997,
+  "price_ratio": 1.1467236467236466,
+  "total": 0.9510916146081252,
   "noise": {
    "noise_dist": 10009.50277912256,
    "rail_dist": 464.2510796622757,
@@ -1423,7 +1465,7 @@
    "building": 1.0,
    "floor": 1.0,
    "quiet": 1.0,
-   "price_value": 0.5503906688362697
+   "price_value": 0.5469714156079856
   },
   "bonus": 0.15000000000000002,
   "flags": [
@@ -1438,8 +1480,8 @@
    "stalinka"
   ],
   "soft_reject": null,
-  "price_ratio": 0.8734373246549211,
-  "total": 0.9433161820669089,
+  "price_ratio": 0.887114337568058,
+  "total": 0.9426323314212521,
   "noise": {
    "noise_dist": 7030.05212888099,
    "rail_dist": 530.1577094796852,
@@ -1457,7 +1499,7 @@
  },
  {
   "cianId": 336130388,
-  "fullUrl": "https://www.cian.ru/rent/flat/336130388/?context=4.VyuojOmQiQo.B8xeOQz0Kh9bwPODrcfS5HPqzjejs8F7uxJcL8qRJfro365q2_Z5FWbNGh90xX3NDYES8o5XTphhGQ&mlSearchSessionGuid=253efe7d87715735c3b1753a2b66be0b",
+  "fullUrl": "https://www.cian.ru/rent/flat/336130388/?context=4.bsymQ0oVjK8.TBk7BwFetg7fmPFgfFA7OyNBJagF54xnQawPV25WE8mK_taB4iT2alTUq6Vk9kpu4d_hMVAul3BeGQ&mlSearchSessionGuid=253efe7d87715735c3b1753a2b66be0b",
   "price": 60000,
   "totalArea": "56.0",
   "floorNumber": 2,
@@ -1474,7 +1516,7 @@
    "building": 0.5,
    "floor": 1.0,
    "quiet": 1.0,
-   "price_value": 0.7794642857142857
+   "price_value": 0.779783693843594
   },
   "bonus": 0.1,
   "flags": [],
@@ -1482,8 +1524,8 @@
    "парк"
   ],
   "soft_reject": null,
-  "price_ratio": 0.7678571428571428,
-  "total": 0.942394828557347,
+  "price_ratio": 0.7665795103399096,
+  "total": 0.9424587101832087,
   "noise": {
    "noise_dist": 8897.12333186711,
    "rail_dist": 1254.0485439219058,
@@ -1496,48 +1538,6 @@
   "job_share30": 0.19714986787466948,
   "park_walk": 4.035890841841647,
   "culture25": 17,
-  "tier": "A",
-  "duplicates": []
- },
- {
-  "cianId": 336105307,
-  "fullUrl": "https://www.cian.ru/rent/flat/336105307/?context=4.jqXBlmRzybU.MPuI1XM8ocA2LjAWSDEKofEdiub-8I6V3287p-o_hH9JZr3-GSCvcxurKIN98L-WgRBGtuV6Al4Stg&mlSearchSessionGuid=253efe7d87715735c3b1753a2b66be0b",
-  "price": 60000,
-  "totalArea": "40.0",
-  "floorNumber": 10,
-  "floorsCount": 16,
-  "materialType": "monolith",
-  "buildYear": 2021,
-  "address": "Москва, СВАО, р-н Марьина роща, м. Марьина Роща, Шереметьевская улица, 13К1",
-  "okrug": "СВАО",
-  "lat": 55.796997,
-  "lng": 37.615371,
-  "rejected": false,
-  "components": {
-   "location": 0.9435682602267127,
-   "building": 0.75,
-   "floor": 0.6,
-   "quiet": 1.0,
-   "price_value": 0.7584468270066648
-  },
-  "bonus": 0.1,
-  "flags": [],
-  "tags": [],
-  "soft_reject": null,
-  "price_ratio": 0.8519269776876267,
-  "total": 0.9419382564806824,
-  "noise": {
-   "noise_dist": 11275.310809013006,
-   "rail_dist": 406.11626486038705,
-   "primary_dist": 427.07928622856866
-  },
-  "move_in_cost": 138000.0,
-  "metro": "Марьина Роща",
-  "metro_walk": 3,
-  "job_p50": 38.40541458129883,
-  "job_share30": 0.2843525858814644,
-  "park_walk": 16.663404619185435,
-  "culture25": 77,
   "tier": "A",
   "duplicates": []
  },
@@ -1654,7 +1654,7 @@
    "building": 1.0,
    "floor": 1.0,
    "quiet": 1.0,
-   "price_value": 0.5664335664335665
+   "price_value": 0.5666377560148417
   },
   "bonus": 0.05,
   "flags": [],
@@ -1662,8 +1662,8 @@
    "собственник"
   ],
   "soft_reject": null,
-  "price_ratio": 0.7342657342657343,
-  "total": 0.9401287537007104,
+  "price_ratio": 0.7334489759406333,
+  "total": 0.9401695916169654,
   "noise": {
    "noise_dist": 8093.7723643845175,
    "rail_dist": 349.39882454490737,
@@ -1765,7 +1765,7 @@
  },
  {
   "cianId": 336135204,
-  "fullUrl": "https://www.cian.ru/rent/flat/336135204/?context=4.FzfkGXiqqQ4.hQCY92CwJQn9B-_BK0vLFYbVlWAKb83hVbag89M-s9HsxDtEJ7kfc0ZKiezAPqpWjml2mLHstqVHsw&mlSearchSessionGuid=af60fe5eef3faa1987c0e177e4c735cb",
+  "fullUrl": "https://www.cian.ru/rent/flat/336135204/?context=4.QQu-NyRBx3Q.Lggho0PNPDa6X53ChYN5GJbkFcYdlBvfdW4bzjaHssqZ2ys7VAGiKL-eUlCv0NpED_Qy2W_oiEaorQ&mlSearchSessionGuid=125b786921ce66af7b7758a77aabaaaf",
   "price": 70000,
   "totalArea": "32.0",
   "floorNumber": 3,
@@ -2084,6 +2084,52 @@
   "duplicates": []
  },
  {
+  "cianId": 282498734,
+  "fullUrl": "https://www.cian.ru/rent/flat/282498734/?context=4.7IqIe6_tMXw.KNzaWw3QjMHJW_y05BPcZ4Bo3H2zDXOHuTPkVRuP3pkEhkWPhZ_gOCfLfi67AIWKUVh4qx5fqyrFPQ&mlSearchSessionGuid=253efe7d87715735c3b1753a2b66be0b",
+  "price": 58000,
+  "totalArea": "45.0",
+  "floorNumber": 3,
+  "floorsCount": 5,
+  "materialType": null,
+  "buildYear": 1966,
+  "address": "Москва, СВАО, р-н Марьина роща, м. Марьина Роща, улица 4-я Марьиной рощи, 8",
+  "okrug": "СВАО",
+  "lat": 55.79599,
+  "lng": 37.62448,
+  "rejected": false,
+  "components": {
+   "location": 0.9154756037456875,
+   "building": 0.5,
+   "floor": 1.0,
+   "quiet": 1.0,
+   "price_value": 0.8219047619047619
+  },
+  "bonus": 0.1,
+  "flags": [
+   "owner"
+  ],
+  "tags": [
+   "собственник"
+  ],
+  "soft_reject": null,
+  "price_ratio": 0.8838095238095238,
+  "total": 0.934797413691943,
+  "noise": {
+   "noise_dist": 11290.46823459108,
+   "rail_dist": 390.3754263723343,
+   "primary_dist": 353.72311540995145
+  },
+  "move_in_cost": 156600.0,
+  "metro": "Марьина Роща",
+  "metro_walk": 7,
+  "job_p50": 41.02975845336914,
+  "job_share30": 0.20828614571536425,
+  "park_walk": 16.817403462237092,
+  "culture25": 37,
+  "tier": "A",
+  "duplicates": []
+ },
+ {
   "cianId": 336019501,
   "fullUrl": "https://www.cian.ru/rent/flat/336019501/?context=4.wCSgKj_XeOE.INd_TjVRwyJnPIqFcBeofEj5fnamRMn4zbMUAnrz6fayNCdL8Ku3wEVOlaVXF8GldJFRae67lhH-ZA&mlSearchSessionGuid=ef6b7d241032b0c555036bcb44ed83f8",
   "price": 65000,
@@ -2123,52 +2169,6 @@
   "park_walk": 2.618335447311221,
   "culture25": 7,
   "tier": "B",
-  "duplicates": []
- },
- {
-  "cianId": 282498734,
-  "fullUrl": "https://www.cian.ru/rent/flat/282498734/?context=4.7IqIe6_tMXw.KNzaWw3QjMHJW_y05BPcZ4Bo3H2zDXOHuTPkVRuP3pkEhkWPhZ_gOCfLfi67AIWKUVh4qx5fqyrFPQ&mlSearchSessionGuid=253efe7d87715735c3b1753a2b66be0b",
-  "price": 58000,
-  "totalArea": "45.0",
-  "floorNumber": 3,
-  "floorsCount": 5,
-  "materialType": null,
-  "buildYear": 1966,
-  "address": "Москва, СВАО, р-н Марьина роща, м. Марьина Роща, улица 4-я Марьиной рощи, 8",
-  "okrug": "СВАО",
-  "lat": 55.79599,
-  "lng": 37.62448,
-  "rejected": false,
-  "components": {
-   "location": 0.9154756037456875,
-   "building": 0.5,
-   "floor": 1.0,
-   "quiet": 1.0,
-   "price_value": 0.8197802197802198
-  },
-  "bonus": 0.1,
-  "flags": [
-   "owner"
-  ],
-  "tags": [
-   "собственник"
-  ],
-  "soft_reject": null,
-  "price_ratio": 0.8923076923076924,
-  "total": 0.9343725052670345,
-  "noise": {
-   "noise_dist": 11290.46823459108,
-   "rail_dist": 390.3754263723343,
-   "primary_dist": 353.72311540995145
-  },
-  "move_in_cost": 156600.0,
-  "metro": "Марьина Роща",
-  "metro_walk": 7,
-  "job_p50": 41.02975845336914,
-  "job_share30": 0.20828614571536425,
-  "park_walk": 16.817403462237092,
-  "culture25": 37,
-  "tier": "A",
   "duplicates": []
  },
  {
@@ -2265,7 +2265,7 @@
  },
  {
   "cianId": 336087612,
-  "fullUrl": "https://www.cian.ru/rent/flat/336087612/?context=4.hkwfM2Cnv4Q.ouWMMgP7RcGBCy6J8UP_RAc8OYtBJdC_T1YprT1cv7jThFvMctYcdD7Ts7wrJyTEhZua7unTnf2ydQ&mlSearchSessionGuid=125b786921ce66af7b7758a77aabaaaf",
+  "fullUrl": "https://www.cian.ru/rent/flat/336087612/?context=4.6e8aZLDBdiQ.wu9yA0QCXamwfG36ocO_8ob3pdOug55A9xv88SMXldKTrYtlB9kapzshsCqTmQdVnjsDrfpx_eAk-Q&mlSearchSessionGuid=125b786921ce66af7b7758a77aabaaaf",
   "price": 68000,
   "totalArea": "60.0",
   "floorNumber": 5,
@@ -2372,14 +2372,14 @@
    "building": 1.0,
    "floor": 0.85,
    "quiet": 1.0,
-   "price_value": 0.8825245293025723
+   "price_value": 0.8809359151682803
   },
   "bonus": 0.05,
   "flags": [],
   "tags": [],
   "soft_reject": null,
-  "price_ratio": 0.969901882789711,
-  "total": 0.9274548812178334,
+  "price_ratio": 0.9762563393268788,
+  "total": 0.927137158390975,
   "noise": {
    "noise_dist": 5237.596103223912,
    "rail_dist": 771.1078962061566,
@@ -2549,7 +2549,7 @@
    "building": 1.0,
    "floor": 1.0,
    "quiet": 1.0,
-   "price_value": 0.6279323658634003
+   "price_value": 0.6251210384997568
   },
   "bonus": 0.05,
   "flags": [
@@ -2557,8 +2557,8 @@
   ],
   "tags": [],
   "soft_reject": null,
-  "price_ratio": 1.3739848222606845,
-  "total": 0.9241818403486288,
+  "price_ratio": 1.3852301317152584,
+  "total": 0.9236195748759002,
   "noise": {
    "noise_dist": 3667.5663300496,
    "rail_dist": 1460.3451374404399,
@@ -2621,7 +2621,7 @@
  },
  {
   "cianId": 336112993,
-  "fullUrl": "https://www.cian.ru/rent/flat/336112993/?context=4.SCnG6Kuc34I.ryjgwbOpmfuQTZi3vGHYexxQKz7vqhBNG6yrAmviWtSVLGoQfR_2H63HYN6M_3tXdMO2pz3rdefyBQ&mlSearchSessionGuid=af60fe5eef3faa1987c0e177e4c735cb",
+  "fullUrl": "https://www.cian.ru/rent/flat/336112993/?context=4.9qb7oG2YM7w.-kwZx876FMputhWw5_-12NhcL0yW7dfCfBQ_IuX3Et7hi1P0Vr2VQP2DeCQyrfkvBTGFC5qZjjCLkA&mlSearchSessionGuid=125b786921ce66af7b7758a77aabaaaf",
   "price": 70000,
   "totalArea": "35.0",
   "floorNumber": 6,
@@ -2792,48 +2792,6 @@
   "duplicates": []
  },
  {
-  "cianId": 335707273,
-  "fullUrl": "https://www.cian.ru/rent/flat/335707273/?context=4.QRiX6m4VL1c.KDwmRDQDkILK_iVjBLPIa2R7ZHC9C0n-I_D3NQmTgu2SiId6Lpp83zvVZy8tw5mwhr1dmLwXMnwr_Q&mlSearchSessionGuid=1b45dca71eabae8427589a8da018c8d4",
-  "price": 55000,
-  "totalArea": "37.0",
-  "floorNumber": 3,
-  "floorsCount": 8,
-  "materialType": "brick",
-  "buildYear": null,
-  "address": "Москва, ВАО, р-н Соколиная гора, м. Семёновская, Измайловское шоссе, 15",
-  "okrug": "ВАО",
-  "lat": 55.779606,
-  "lng": 37.725262,
-  "rejected": false,
-  "components": {
-   "location": 0.6559881715130607,
-   "building": 1.0,
-   "floor": 1.0,
-   "quiet": 1.0,
-   "price_value": 0.9299799070207233
-  },
-  "bonus": 0.05,
-  "flags": [],
-  "tags": [],
-  "soft_reject": null,
-  "price_ratio": 0.7800803719171066,
-  "total": 0.915591841433716,
-  "noise": {
-   "noise_dist": 7306.178981612276,
-   "rail_dist": 858.2903899929008,
-   "primary_dist": 1186.6747203515515
-  },
-  "move_in_cost": 148500.0,
-  "metro": "Семёновская",
-  "metro_walk": 8,
-  "job_p50": 46.57353973388672,
-  "job_share30": 0.10475651189127971,
-  "park_walk": 16.834416642946877,
-  "culture25": 3,
-  "tier": "A",
-  "duplicates": []
- },
- {
   "cianId": 166451433,
   "fullUrl": "https://www.cian.ru/rent/flat/166451433/?context=4.ekwUvaoekUA.I3bURZYFPsR2tIdqEtc9YGIgeLVNAZLHrOe6YHZRIj6Uvy_5r6FGDUpzLe2WtH6mmXRTFMgun-tyLA&mlSearchSessionGuid=1b45dca71eabae8427589a8da018c8d4",
   "price": 55000,
@@ -2926,6 +2884,48 @@
   "duplicates": []
  },
  {
+  "cianId": 335707273,
+  "fullUrl": "https://www.cian.ru/rent/flat/335707273/?context=4.QRiX6m4VL1c.KDwmRDQDkILK_iVjBLPIa2R7ZHC9C0n-I_D3NQmTgu2SiId6Lpp83zvVZy8tw5mwhr1dmLwXMnwr_Q&mlSearchSessionGuid=1b45dca71eabae8427589a8da018c8d4",
+  "price": 55000,
+  "totalArea": "37.0",
+  "floorNumber": 3,
+  "floorsCount": 8,
+  "materialType": "brick",
+  "buildYear": null,
+  "address": "Москва, ВАО, р-н Соколиная гора, м. Семёновская, Измайловское шоссе, 15",
+  "okrug": "ВАО",
+  "lat": 55.779606,
+  "lng": 37.725262,
+  "rejected": false,
+  "components": {
+   "location": 0.6559881715130607,
+   "building": 1.0,
+   "floor": 1.0,
+   "quiet": 1.0,
+   "price_value": 0.9245985578767035
+  },
+  "bonus": 0.05,
+  "flags": [],
+  "tags": [],
+  "soft_reject": null,
+  "price_ratio": 0.8016057684931857,
+  "total": 0.914515571604912,
+  "noise": {
+   "noise_dist": 7306.178981612276,
+   "rail_dist": 858.2903899929008,
+   "primary_dist": 1186.6747203515515
+  },
+  "move_in_cost": 148500.0,
+  "metro": "Семёновская",
+  "metro_walk": 8,
+  "job_p50": 46.57353973388672,
+  "job_share30": 0.10475651189127971,
+  "park_walk": 16.834416642946877,
+  "culture25": 3,
+  "tier": "A",
+  "duplicates": []
+ },
+ {
   "cianId": 335142264,
   "fullUrl": "https://www.cian.ru/rent/flat/335142264/?context=4.KTSPvyEeVv0.siV2kkYnww1LhnObOu6EfuxKzFfDxVZNnTsGLxZQNAA9uD28QTAESJJKC_BBOIXCyiDuMexIozhFbg&mlSearchSessionGuid=125b786921ce66af7b7758a77aabaaaf",
   "price": 67000,
@@ -3013,7 +3013,7 @@
  },
  {
   "cianId": 336162550,
-  "fullUrl": "https://www.cian.ru/rent/flat/336162550/?context=4.BPYCis2CUYI.UW4cmM-abJ_bthNYtgYXfG3B1ahXyqiG5d-NJ2-e40wUEt4M4NSNVym1mr2YGvIDwzaSGQB4m4anvg&mlSearchSessionGuid=125b786921ce66af7b7758a77aabaaaf",
+  "fullUrl": "https://www.cian.ru/rent/flat/336162550/?context=4.r5x3j4io2SA.SB-JIirbT00VhFuzLJhjaajcgFpxSVdH3scej-VequW-sUsJGfNJ0nJVZRhQw7Oi0Oq03uBvJEe8gg&mlSearchSessionGuid=125b786921ce66af7b7758a77aabaaaf",
   "price": 70000,
   "totalArea": "31.0",
   "floorNumber": 4,
@@ -3055,52 +3055,6 @@
   "job_share30": 0.16742166855417123,
   "park_walk": 18.901268131508704,
   "culture25": 91,
-  "tier": "B",
-  "duplicates": []
- },
- {
-  "cianId": 335879596,
-  "fullUrl": "https://www.cian.ru/rent/flat/335879596/?context=4.r0dSJ1CFexU.odGbDbXdHcsdID1kez_7LYYGArLq8ZY6ULyip4IUQQJwxvlKV8ysL_YppiX8O5HcufO6lhNch2abBQ&mlSearchSessionGuid=fd633ee1d655543f333bb7a6d7479555",
-  "price": 65000,
-  "totalArea": "43.0",
-  "floorNumber": 6,
-  "floorsCount": 9,
-  "materialType": "brick",
-  "buildYear": 1965,
-  "address": "Москва, САО, р-н Тимирязевский, м. Тимирязевская, улица Костякова, 15",
-  "okrug": "САО",
-  "lat": 55.815392,
-  "lng": 37.569279,
-  "rejected": false,
-  "components": {
-   "location": 0.8796205027106949,
-   "building": 1.0,
-   "floor": 0.85,
-   "quiet": 1.0,
-   "price_value": 0.5767486307622091
-  },
-  "bonus": 0.05,
-  "flags": [],
-  "tags": [
-   "тихий",
-   "парк",
-   "кирпич"
-  ],
-  "soft_reject": null,
-  "price_ratio": 1.0680054769511638,
-  "total": 0.908216902101185,
-  "noise": {
-   "noise_dist": 9591.704678937691,
-   "rail_dist": 540.9137279959223,
-   "primary_dist": 435.1792446829025
-  },
-  "move_in_cost": 169000.0,
-  "metro": "Тимирязевская",
-  "metro_walk": 8,
-  "job_p50": 46.35642623901367,
-  "job_share30": 0.10362400906002263,
-  "park_walk": 3.5489741723332235,
-  "culture25": 8,
   "tier": "B",
   "duplicates": []
  },
@@ -3190,6 +3144,52 @@
   "job_share30": 0.06445828614571536,
   "park_walk": 17.995209448232124,
   "culture25": 26,
+  "tier": "B",
+  "duplicates": []
+ },
+ {
+  "cianId": 335879596,
+  "fullUrl": "https://www.cian.ru/rent/flat/335879596/?context=4.r0dSJ1CFexU.odGbDbXdHcsdID1kez_7LYYGArLq8ZY6ULyip4IUQQJwxvlKV8ysL_YppiX8O5HcufO6lhNch2abBQ&mlSearchSessionGuid=fd633ee1d655543f333bb7a6d7479555",
+  "price": 65000,
+  "totalArea": "43.0",
+  "floorNumber": 6,
+  "floorsCount": 9,
+  "materialType": "brick",
+  "buildYear": 1965,
+  "address": "Москва, САО, р-н Тимирязевский, м. Тимирязевская, улица Костякова, 15",
+  "okrug": "САО",
+  "lat": 55.815392,
+  "lng": 37.569279,
+  "rejected": false,
+  "components": {
+   "location": 0.8796205027106949,
+   "building": 1.0,
+   "floor": 0.85,
+   "quiet": 1.0,
+   "price_value": 0.570289675119785
+  },
+  "bonus": 0.05,
+  "flags": [],
+  "tags": [
+   "тихий",
+   "парк",
+   "кирпич"
+  ],
+  "soft_reject": null,
+  "price_ratio": 1.0938412995208602,
+  "total": 0.9069251109727002,
+  "noise": {
+   "noise_dist": 9591.704678937691,
+   "rail_dist": 540.9137279959223,
+   "primary_dist": 435.1792446829025
+  },
+  "move_in_cost": 169000.0,
+  "metro": "Тимирязевская",
+  "metro_walk": 8,
+  "job_p50": 46.35642623901367,
+  "job_share30": 0.10362400906002263,
+  "park_walk": 3.5489741723332235,
+  "culture25": 8,
   "tier": "B",
   "duplicates": []
  },
