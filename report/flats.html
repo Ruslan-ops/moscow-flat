@@ -2,7 +2,7 @@
 <html lang="ru">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Квартиры в Москве: подборка</title>
 <style>/* required styles */
 
@@ -694,7 +694,7 @@ button, select, input { font: inherit; color: inherit; }
 h1 { font: 600 clamp(20px, 3vw, 26px)/1.2 var(--display); margin: 0; }
 .stamp { color: var(--muted); font-size: 13px; font-variant-numeric: tabular-nums; }
 .filters { position: sticky; top: 0; z-index: 1100; background: var(--bg); border-bottom: 1px solid var(--line); padding: 10px max(16px, 2vw); display: flex; flex-wrap: wrap; gap: 10px 18px; align-items: end; }
-.f { display: grid; gap: 3px; }
+.f { display: grid; gap: 3px; min-width: 0; }
 .f > span { font-size: 11.5px; color: var(--muted); text-transform: uppercase; letter-spacing: .05em; }
 .f input[type=number] { width: 88px; }
 .f input, .f select { background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 6px 8px; }
@@ -709,11 +709,25 @@ h1 { font: 600 clamp(20px, 3vw, 26px)/1.2 var(--display); margin: 0; }
 .mapcol { position: sticky; top: var(--ftop, 64px); height: calc(100vh - var(--ftop, 64px)); }
 #map { position: absolute; inset: 0; background: var(--soft); }
 .list { padding: 14px max(16px, 2vw) 60px; display: grid; gap: 14px; align-content: start; min-width: 0; }
+.tabs { display: none; }
 @media (max-width: 900px) {
+  body { padding-bottom: calc(64px + env(safe-area-inset-bottom, 0px)); }
+  .top { padding-top: max(12px, env(safe-area-inset-top, 0px)); }
+  .stamp { font-size: 11.5px; }
+  .filters { top: env(safe-area-inset-top, 0px); max-height: 75dvh; overflow-y: auto; gap: 8px 12px; }
+  .filters:not(.open) > :not(.pri):not(#toggleMore):not(.count) { display: none; }
+  .filters .count { margin-left: 0; flex-basis: 100%; font-size: 12.5px; }
   .split { grid-template-columns: 1fr; }
-  .mapcol { position: relative; top: 0; height: 55vh; }
-  .filters { position: static; }
-  .flat { scroll-margin-top: 10px; }
+  .mapcol { position: fixed; inset: 0 0 calc(56px + env(safe-area-inset-bottom, 0px)) 0; height: auto; top: 0; z-index: 1200; }
+  body.view-list .mapcol { visibility: hidden; pointer-events: none; }
+  body.view-map .list, body.view-map .texts, body.view-map .top, body.view-map .filters { display: none; }
+  .list { padding-top: 10px; }
+  .flat { padding: 12px; scroll-margin-top: calc(var(--ftop, 60px) + 8px); }
+  .mapcol .legend { display: none; }
+  .tabs { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; position: fixed; left: 0; right: 0; bottom: 0; z-index: 1300; background: var(--surface); border-top: 1px solid var(--line); padding: 6px max(12px, env(safe-area-inset-left, 0px)) calc(6px + env(safe-area-inset-bottom, 0px)) max(12px, env(safe-area-inset-right, 0px)); }
+  .tabs button { border: 0; border-radius: 10px; padding: 11px; font-weight: 600; background: var(--soft); color: var(--ink); }
+  .tabs button[aria-pressed=true] { background: var(--accent); color: var(--accent-ink); }
+  .leaflet-control-layers-expanded { max-height: 60dvh; overflow-y: auto; }
 }
 .flat { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 14px; display: grid; gap: 12px; scroll-margin-top: calc(var(--ftop, 64px) + 10px); }
 .flat.sel { border-color: var(--accent); box-shadow: 0 0 0 3px var(--soft); }
@@ -782,7 +796,15 @@ details.text p, details.text li { max-width: 70ch; }
 #map:not(.zin) .leaflet-tooltip.st { display: none; }
 .leaflet-container { font: 13px var(--font); }
 .leaflet-popup-content { margin: 10px 12px; }
+.pop { display: grid; gap: 4px; min-width: 190px; }
 .pop b { font-size: 14px; }
+.gocard { margin-top: 6px; border: 0; border-radius: 8px; background: var(--accent); color: var(--accent-ink); font-weight: 700; padding: 9px 12px; cursor: pointer; font-size: 14px; }
+.gocard:hover { filter: brightness(1.1); }
+button.b { border: 0; cursor: pointer; font: inherit; font-size: 12.5px; font-weight: 600; }
+button.b.bad::after { content: " ▾"; }
+.rsec.flash { animation: flash 1.2s ease-out; border-radius: 8px; }
+@keyframes flash { from { background: var(--bad-bg); } to { background: transparent; } }
+@media (prefers-reduced-motion: reduce) { .rsec.flash { animation: none; } }
 .leaflet-control-layers-toggle { background-image: none; width: auto; height: auto; padding: 6px 10px; color: #222; font-weight: 600; }
 .leaflet-control-layers-toggle::after { content: "Слои"; }
 .zoomimg { position: fixed; inset: 0; z-index: 3000; background: rgb(0 0 0 / .85); display: grid; place-items: center; padding: 16px; cursor: zoom-out; }
@@ -795,12 +817,12 @@ details.text p, details.text li { max-width: 70ch; }
   <span class="stamp" id="stamp"></span>
 </div>
 <form class="filters" id="filters" autocomplete="off">
-  <div class="f"><span>Цена до, ₽</span><div class="row"><input type="number" id="pmax" step="1000" min="20000" value="70000" aria-label="Цена до"><span class="row" id="pchips"></span></div></div>
+  <div class="f pri"><span>Цена до, ₽</span><div class="row"><input type="number" id="pmax" step="1000" min="20000" value="70000" aria-label="Цена до"><span class="row" id="pchips"></span></div></div>
   <label class="f"><span>Площадь от, м²</span><input type="number" id="amin" step="1" min="20" value="29"></label>
   <div class="f"><span>Ремонт от</span><div class="row" id="rchips"></div></div>
   <label class="f"><span>До метро</span><select id="walk"><option value="99">любое</option><option value="5">до 5 мин</option><option value="8">до 8 мин</option><option value="10">до 10 мин</option><option value="12">до 12 мин</option></select></label>
   <label class="f"><span>Сортировка</span><select id="sort"><option value="final">общий рейтинг</option><option value="price">сначала дешевле</option><option value="repair">лучше ремонт</option><option value="hub">ближе к выбранному месту</option><option value="fresh">свежие объявления</option><option value="park">ближе парк</option></select></label>
-  <button type="button" class="chip" id="toggleMore" aria-pressed="false">Ещё фильтры</button>
+  <button type="button" class="chip" id="toggleMore" aria-pressed="false">Фильтры</button>
   <span class="count" id="count"></span>
   <div class="row" id="more" hidden>
     <label class="f"><span>Дорога до</span><select id="hub"></select></label>
@@ -823,6 +845,7 @@ details.text p, details.text li { max-width: 70ch; }
   </div>
   <div class="list" id="list"></div>
 </div>
+<nav class="tabs" aria-label="Режим просмотра"><button type="button" id="tabList" aria-pressed="true">Список</button><button type="button" id="tabMap" aria-pressed="false">Карта</button></nav>
 <div class="texts"><h2>Справка</h2><details class="text"><summary>Аренда на пробу</summary><ul><li>В Москве стандарт — договор на 11 месяцев. Аренда на 1–3 месяца бывает, но это ниша: на ЦИАН есть фильтр «на несколько месяцев», на Авито — «срок аренды: несколько месяцев». Таких объявлений в разы меньше, и месяц в них на 20–50% дороже (оценка, точных данных нет).</li><li>Апарт-отели с помесячной оплатой: студия от ~140 тыс. ₽ в месяц. Удобно, но это апартаменты и дорого.</li><li>Самый практичный вариант: снять квартиру на 11 месяцев и прописать досрочный выезд. Формулировка: «досрочное расторжение с уведомлением за 30 дней, залог возвращается». Многие собственники соглашаются. Риск — потеря залога, если об этом не договорились.</li><li>Посуточная аренда на месяц обычно в 1,5–2 раза дороже.</li></ul></details><details class="text"><summary>Деньги на въезд</summary><ul><li>Первый месяц, залог (обычно один месяц, иногда его можно разбить на 2–3 платежа) и комиссия агента 50–100% месячной платы. У собственника комиссии нет.</li><li>Коммунальные платежи: в однушке примерно 5–9 тыс. ₽ в месяц, если не включены в цену. Счётчики почти всегда отдельно.</li></ul></details><details class="text"><summary>Торг</summary><ul><li>Торговаться в Москве нормально: обычная скидка 2–5 тыс. ₽ в месяц, при долгой экспозиции больше. В каждой карточке указана цена, которую разумно предложить, и аргументы.</li><li>Лучшие аргументы: объявление висит больше двух недель, цена выше соседних, уставшие санузел или кухня, последний этаж, маленькая кухня.</li><li>Сильная позиция арендатора: договор на 11 месяцев, въезд сразу, стабильный доход, без детей и животных. Это стоит говорить первым.</li><li>Комиссию агента тоже обсуждают: 100% часто снижают до 50%.</li><li>Не торговаться за отличный вариант в первый день публикации: его снимут, пока идёт переписка.</li></ul></details><details class="text"><summary>Скрытые минусы, которые видит риелтор</summary><ol><li>Пятиэтажки 1957–1968 годов могут попасть в программу реновации. Адрес проверяют на mos.ru: при сносе придётся съехать, а стройки рядом шумят годами.</li><li>Стройка рядом: шум с 7 утра, пыль на подоконниках, грузовики.</li><li>Последний этаж: протечки с крыши, жара летом. Смотреть потолок в углах и у окон.</li><li>Второй этаж над магазином или кафе: запахи, гул вентиляции, разгрузка по утрам.</li><li>Квартира одновременно продаётся: показы покупателям и риск, что новый владелец попросит съехать.</li><li>Объявление висит месяцами: часто это приманка агентства, квартиры уже нет.</li><li>«Собственник» в тексте, а размещает агент: комиссия всплывёт на просмотре.</li><li>Фото разных лет или разных квартир, нет фото санузла: прячут слабое место.</li><li>Вещи собственника в шкафах или закрытая комната: платите за площадь, которой не пользуетесь.</li><li>Газовая колонка и старые деревянные окна: зимой дует, вода зависит от колонки.</li></ol></details><details class="text"><summary>Чек-лист просмотра</summary><ol><li>Слышимость: постоять 5 минут в тишине, постучать по стене с соседями. В панельных домах (П-44, II-49, КОПЭ) соседей слышно, в кирпичных домах и сталинках обычно тише.</li><li>Окна: куда выходят спальня и кухня, закрыть окна и послушать улицу, проверить, не дует ли.</li><li>Плесень и сырость: углы у окон, ванная, за шкафами, запах.</li><li>Вода: сколько ждать горячую, напор, слив, подтёки под раковиной.</li><li>Кухня и техника: плита, духовка, холодильник, стиральная машина — включить.</li><li>Потолок: пятна и разводы означают протечки сверху.</li><li>Подъезд и лифт: чистота, работает ли лифт, кто живёт на площадке.</li><li>Интернет и мобильная связь внутри квартиры.</li><li>Что можно убрать или заменить: договориться сразу и записать в договор.</li></ol></details><details class="text"><summary>Как не попасть на мошенников</summary><ul><li>Ничего не платить до просмотра и подписания договора.</li><li>Цена сильно ниже соседних — почти всегда приманка. Такие объявления в отчёт не попали.</li><li>Проверить собственника: паспорт и свежая выписка ЕГРН, которую заказываете сами через Госуслуги или Росреестр (несколько сотен рублей). ФИО должны совпасть.</li><li>Залог переводить только собственнику или по договору, под расписку. Подписать акт приёма-передачи с описью вещей и фото показаний счётчиков.</li></ul></details>
 <details class="text"><summary>Как устроена оценка</summary>
 <ul>
@@ -912,11 +935,27 @@ let walkCircle = null, selected = null;
 F.forEach((f) => {
   const cls = ["pm", f.review.pred >= 4 ? "" : "mid", f.status === "new" ? "new" : "", f.status === "removed" ? "gone" : ""].join(" ");
   const m = L.marker([f.lat, f.lng], {icon: L.divIcon({className: "", html: `<span class="${cls}" data-id="${f.cianId}">${Math.round(f.price / 1000)}</span>`, iconSize: [0, 0]}), riseOnHover: true});
-  m.bindPopup(() => `<div class="pop"><b>${money(f.price)} ₽ · ${num(f.totalArea)} м²</b><br>м. ${esc(f.metro)}, ${f.metro_walk} мин пешком<br>Ремонт ${num(f.review.pred)} · этаж ${f.floorNumber} из ${f.floorsCount}<br><button type="button" class="linkbtn" data-go="${f.cianId}">К карточке ↓</button></div>`);
+  m.bindPopup(() => `<div class="pop"><b>${money(f.price)} ₽ · ${num(f.totalArea)} м²</b><span>м. ${esc(f.metro)}, ${f.metro_walk} мин пешком</span><span>Ремонт ${num(f.review.pred)} · этаж ${f.floorNumber} из ${f.floorsCount}</span><button type="button" class="gocard" data-go="${f.cianId}">Открыть карточку →</button></div>`);
   m.on("click", () => select(f.cianId, false));
   markers.set(f.cianId, m);
 });
-map.on("popupopen", (e) => { const b = e.popup.getElement().querySelector("[data-go]"); if (b) b.onclick = () => { const el = $(`flat-${b.dataset.go}`); if (el) el.scrollIntoView({behavior: "smooth", block: "start"}); }; });
+const mobile = () => matchMedia("(max-width: 900px)").matches;
+function setView(v) {
+  document.body.classList.toggle("view-map", v === "map");
+  document.body.classList.toggle("view-list", v !== "map");
+  $("tabMap").setAttribute("aria-pressed", v === "map");
+  $("tabList").setAttribute("aria-pressed", v !== "map");
+  if (v === "map") setTimeout(() => map.invalidateSize(), 50);
+}
+function goCard(id) {
+  if (mobile()) setView("list");
+  const el = $(`flat-${id}`);
+  if (el) requestAnimationFrame(() => el.scrollIntoView({behavior: "smooth", block: "start"}));
+}
+$("tabList").addEventListener("click", () => setView("list"));
+$("tabMap").addEventListener("click", () => setView("map"));
+setView("list");
+map.on("popupopen", (e) => { const b = e.popup.getElement().querySelector("[data-go]"); if (b) b.onclick = () => goCard(+b.dataset.go); });
 
 function select(id, fly) {
   const f = F.find((x) => x.cianId === id);
@@ -940,11 +979,11 @@ function card(f, i) {
   return `<article class="flat${f.status === "removed" ? " gone" : ""}" id="flat-${f.cianId}">
 <div class="fh"><span class="rk">${i + 1}</span><div class="t"><h3>м. ${esc(f.metro)} · ${f.metro_walk} мин пешком</h3><span class="addr">${esc(f.address)}</span></div>
 <div class="price"><b>${money(f.price)} ₽</b>${f.price_was ? `<s>было ${money(f.price_was)} ₽</s>` : ""}<span class="tg">торг: ${money(r.target_price)} ₽</span></div></div>
-<div class="badges"><span class="b ${repairClass(rv.pred)}">ремонт ${num(rv.pred)} · ${esc(rv.verdict)}</span>${st ? `<span class="b ${st[1]}">${st[0]}</span>` : ""}${f.owner ? '<span class="b good">собственник</span>' : ""}${f.fee ? `<span class="b plain">комиссия ${f.fee}%</span>` : '<span class="b good">без комиссии</span>'}${r.minus.length ? `<span class="b bad">минусов: ${r.minus.length}</span>` : ""}${days ? `<span class="b plain">опубликовано ${days}</span>` : ""}</div>
+<div class="badges"><span class="b ${repairClass(rv.pred)}">ремонт ${num(rv.pred)} · ${esc(rv.verdict)}</span>${st ? `<span class="b ${st[1]}">${st[0]}</span>` : ""}${f.owner ? '<span class="b good">собственник</span>' : ""}${f.fee ? `<span class="b plain">комиссия ${f.fee}%</span>` : '<span class="b good">без комиссии</span>'}${r.minus.length ? `<button type="button" class="b bad" data-minus="${f.cianId}" title="Показать минусы">минусов: ${r.minus.length}</button>` : ""}${days ? `<span class="b plain">опубликовано ${days}</span>` : ""}</div>
 <dl class="facts"><div><dt>Площадь</dt><dd>${num(f.totalArea)} м²</dd></div>${f.kitchen ? `<div><dt>Кухня</dt><dd>${num(f.kitchen)} м²</dd></div>` : ""}<div><dt>Этаж</dt><dd>${f.floorNumber} из ${f.floorsCount}</dd></div><div><dt>Дом</dt><dd>${MATERIAL[f.materialType] || "—"}${f.buildYear ? ", " + f.buildYear : ""}</dd></div><div><dt>На въезд</dt><dd>${money(f.move_in_cost)} ₽</dd></div><div><dt>Залог</dt><dd>${money(f.deposit)} ₽</dd></div></dl>
 ${P[f.cianId] ? `<img class="sheet" data-src="${f.cianId}" alt="Фото квартиры у м. ${esc(f.metro)}">` : ""}
 <div class="two"><section><h4>Ремонт по фото</h4><p>${esc(rv.summary)}</p><p class="sub">база ${num(rv.base)} · мебель и мелочи ${num(rv.soft)}${rv.light ? " · " + esc(rv.light) : ""}</p>${rv.fixable && rv.fixable.length ? `<p class="sub">Можно убрать или заменить:</p>${list(rv.fixable, "")}` : ""}${rv.red_flags && rv.red_flags.length ? `<p class="sub">Заметно на фото:</p>${list(rv.red_flags, "checkl")}` : ""}</section>
-<section><h4>Глазами риелтора</h4>${list(r.minus, "minus") || '<p class="sub">Серьёзных минусов по данным не видно.</p>'}${list(r.check, "checkl")}${list(r.plus, "plus")}</section></div>
+<section class="rsec" id="rs-${f.cianId}"><h4>Глазами риелтора${r.minus.length ? ` · минусов: ${r.minus.length}` : ""}</h4>${list(r.minus, "minus") || '<p class="sub">Серьёзных минусов по данным не видно.</p>'}${list(r.check, "checkl")}${list(r.plus, "plus")}</section></div>
 <details class="more2"><summary>Торг, место и дорога</summary><div class="two">
 <section><h4>Торг: предложить ${money(r.target_price)} ₽</h4>${list(r.bargain, "")}</section>
 <section><h4>Место</h4><ul><li>Парк от 10 га: <b>${Math.round(pl.park_walk)} мин</b> пешком</li><li>Музеев и галерей в 25 мин: <b>${pl.culture25}</b></li><li>Шум: <b>${quiet(pl.quiet)}</b></li><li>Половина креативных студий: <b>до ${Math.round(pl.job_p50)} мин</b></li></ul></section>
@@ -984,15 +1023,17 @@ function apply() {
   if (selected && ids.has(selected)) select(selected, false);
 }
 $("list").addEventListener("click", (e) => {
+  const mb = e.target.closest("[data-minus]");
+  if (mb) { const sec = $(`rs-${mb.dataset.minus}`); sec.scrollIntoView({behavior: "smooth", block: "center"}); sec.classList.remove("flash"); void sec.offsetWidth; sec.classList.add("flash"); return; }
   const b = e.target.closest("[data-map]");
-  if (b) { select(+b.dataset.map, true); if (innerWidth < 900) $("map").scrollIntoView({behavior: "smooth"}); return; }
+  if (b) { if (mobile()) setView("map"); select(+b.dataset.map, true); return; }
   const im = e.target.closest("img.sheet");
   if (im && im.src) { const z = document.createElement("div"); z.className = "zoomimg"; z.innerHTML = `<img src="${im.src}" alt="">`; z.onclick = () => z.remove(); document.body.append(z); }
 });
 $("filters").addEventListener("input", apply);
 $("filters").addEventListener("submit", (e) => e.preventDefault());
 function setTop() { document.documentElement.style.setProperty("--ftop", $("filters").offsetHeight + "px"); map.invalidateSize(); }
-$("toggleMore").addEventListener("click", () => { const m = $("more"); m.hidden = !m.hidden; $("toggleMore").setAttribute("aria-pressed", !m.hidden); setTop(); });
+$("toggleMore").addEventListener("click", () => { const m = $("more"); m.hidden = !m.hidden; $("filters").classList.toggle("open", !m.hidden); $("toggleMore").setAttribute("aria-pressed", !m.hidden); setTop(); });
 $("reset").addEventListener("click", () => { $("filters").reset(); state.rmin = RMIN; apply(); });
 document.addEventListener("keydown", (e) => { if (e.key === "Escape") document.querySelectorAll(".zoomimg").forEach((z) => z.remove()); });
 addEventListener("resize", setTop);
