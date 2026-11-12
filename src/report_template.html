@@ -190,6 +190,7 @@ button.b.bad::after { content: " ▾"; }
     <label class="check"><input type="checkbox" id="nominus"> без серьёзных минусов</label>
     <label class="check"><input type="checkbox" id="newonly"> только новые</label>
     <label class="check"><input type="checkbox" id="showgone"> показать снятые</label>
+    <label class="check"><input type="checkbox" id="showold"> показать висящие больше 100 дней (<span id="oldn"></span>)</label>
     <button type="button" class="reset" id="reset">Сбросить</button>
   </div>
 </form>
@@ -380,7 +381,7 @@ const io = new IntersectionObserver((es) => es.forEach((e) => { if (e.isIntersec
 
 function read() {
   return {pmax: +$("pmax").value || 1e9, amin: +$("amin").value || 0, walk: +$("walk").value, sort: $("sort").value, hub: +$("hub").value, hubmax: +$("hubmax").value, park: +$("park").value, okrug: $("okrug").value,
-    nofee: $("nofee").checked, quiet: $("quiet").checked, nopanel: $("nopanel").checked, notop: $("notop").checked, nominus: $("nominus").checked, newonly: $("newonly").checked, showgone: $("showgone").checked};
+    nofee: $("nofee").checked, quiet: $("quiet").checked, nopanel: $("nopanel").checked, notop: $("notop").checked, nominus: $("nominus").checked, newonly: $("newonly").checked, showgone: $("showgone").checked, showold: $("showold").checked};
 }
 const SORTS = {
   final: (a, b) => b.final - a.final,
@@ -390,20 +391,24 @@ const SORTS = {
   fresh: (a, b) => (b.created || "").localeCompare(a.created || ""),
   park: (a, b) => a.place.park_walk - b.place.park_walk,
 };
+const OLD_DAYS = 100;
+const isOld = (f) => (f.realtor.days_listed || 0) > OLD_DAYS;
 function apply() {
   const s = read();
   document.querySelectorAll("#pchips .chip").forEach((b) => b.setAttribute("aria-pressed", +b.dataset.v === s.pmax));
   document.querySelectorAll("#rchips .chip").forEach((b) => b.setAttribute("aria-pressed", +b.dataset.v === state.rmin));
   const shown = F.filter((f) => f.price <= s.pmax && f.totalArea >= s.amin && f.review.pred >= state.rmin && f.metro_walk <= s.walk && f.commute[s.hub] <= s.hubmax && f.place.park_walk <= s.park
     && (!s.okrug || f.okrug === s.okrug) && (!s.nofee || !f.fee) && (!s.quiet || f.place.quiet >= 0.95) && (!s.nopanel || !["panel", "block"].includes(f.materialType))
-    && (!s.notop || f.floorNumber !== f.floorsCount) && (!s.nominus || !f.realtor.minus.length) && (!s.newonly || f.status === "new") && (s.showgone || f.status !== "removed"));
+    && (!s.notop || f.floorNumber !== f.floorsCount) && (!s.nominus || !f.realtor.minus.length) && (!s.newonly || f.status === "new") && (s.showgone || f.status !== "removed") && (s.showold || !isOld(f)));
   shown.sort((a, b) => (a.status === "removed") - (b.status === "removed") || SORTS[s.sort](a, b, s));
   $("list").innerHTML = shown.length ? shown.map(card).join("") : '<p class="empty">Под эти фильтры ничего не подходит. Поднимите цену или снизьте планку ремонта.</p>';
   $("list").querySelectorAll("img.sheet").forEach((im) => io.observe(im));
   $("list").querySelectorAll(".gal").forEach(wireGallery);
   const ids = new Set(shown.map((f) => f.cianId));
   markers.forEach((m, id) => ids.has(id) ? m.addTo(map) : m.remove());
-  $("count").innerHTML = `Показано <b>${shown.length}</b> из ${F.length} · до 60 тыс.: <b>${shown.filter((f) => f.price <= 60000).length}</b>`;
+  const old = F.filter(isOld).length;
+  $("oldn").textContent = old;
+  $("count").innerHTML = `Показано <b>${shown.length}</b> из ${F.length} · до 60 тыс.: <b>${shown.filter((f) => f.price <= 60000).length}</b>${s.showold ? "" : ` · скрыто старых (>${OLD_DAYS} дн.): <b>${old}</b>`}`;
   if (selected && ids.has(selected)) select(selected, false);
 }
 $("list").addEventListener("click", (e) => {

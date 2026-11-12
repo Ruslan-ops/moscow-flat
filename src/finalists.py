@@ -1,3 +1,4 @@
+import glob
 import json
 import os
 import sqlite3
@@ -26,6 +27,7 @@ ranked = {x["cianId"]: x for x in load("data/ranked/cian_ranked.json")}
 offers = {o["cianId"]: o for o in load("data/cian/offers.json")}
 reviews = {r["cianId"]: r for r in load("data/reviews/all_sonnet.json")}
 reviews.update({r["cianId"]: r for r in load("data/reviews/align_opus.json")})
+recheck = {r["cianId"]: r for path in glob.glob(f"{ROOT}/data/reviews/recheck/out_*.json") for r in json.load(open(path, encoding="utf-8"))}
 avito = load("data/report/avito_matches.json")
 conn = sqlite3.connect(f"{ROOT}/data/avito/collector.sqlite")
 checks = {int(c): (s, p, t) for c, s, p, t in conn.execute("SELECT cian_id, status, price, checked FROM cian_checks")}
@@ -37,7 +39,9 @@ stamp = today.strftime("%Y-%m-%d")
 extra = load_extra()
 out = []
 for cid, rv in reviews.items():
-    pred = OVERRIDES.get(cid, rv["pred"])
+    rc = recheck.get(cid, {})
+    rv = {**rv, **{k: rc[k] for k in ("toilet", "toilet_note", "storage", "storage_note", "other") if k in rc}}
+    pred = OVERRIDES.get(cid, rv["pred"]) - 0.5 * (rc.get("toilet") == "тесно") - 0.5 * (rc.get("storage") == "нет")
     r = ranked.get(cid)
     if pred < MIN_PRED or cid in EXCLUDE or r is None or r.get("rejected") or r.get("soft_reject") or r.get("duplicate_of") or cid not in offers:
         continue
@@ -53,7 +57,7 @@ for cid, rv in reviews.items():
         "floorNumber": r["floorNumber"], "floorsCount": r["floorsCount"], "materialType": r["materialType"], "buildYear": r["buildYear"],
         "metro": r["metro"], "metro_walk": r["metro_walk"], "address": r["address"], "okrug": r.get("okrug"), "lat": o["geo"]["coordinates"]["lat"], "lng": o["geo"]["coordinates"]["lng"],
         "move_in_cost": r["move_in_cost"], "deposit": o["bargainTerms"].get("deposit") or 0, "fee": o["bargainTerms"].get("clientFee") or 0, "owner": bool(o.get("isByHomeowner")), "tier": "A" if price <= 62000 else "B", "total": r["total"],
-        "review": {**{k: rv.get(k) for k in ("base", "soft", "summary", "fixable", "red_flags", "light")}, "pred": pred, "verdict": verdict(pred)},
+        "review": {**{k: rv.get(k) for k in ("base", "soft", "summary", "fixable", "red_flags", "light", "toilet", "storage")}, "pred": pred, "verdict": verdict(pred)},
         "place": {"park_walk": r["park_walk"], "culture25": r["culture25"], "job_p50": r["job_p50"], "quiet": r["components"]["quiet"]},
         "realtor": inspect(o, r, rv, extra, today),
         "avito_url": match["url"] if match else None, "photos": o.get("photos") or [],

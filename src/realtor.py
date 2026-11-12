@@ -82,8 +82,18 @@ def inspect(offer, r, review, extra, today):
     kitchen = float(offer.get("kitchenArea") or 0)
     if 0 < kitchen < 7:
         minus.append(f"Кухня {kitchen:g} м²: вдвоём тесно, стол на двоих встанет с трудом.")
-    if not offer.get("balconiesCount") and not offer.get("loggiasCount"):
-        check.append("Ни балкона, ни лоджии: бельё сушить в комнате.")
+    rv = review or {}
+    if rv.get("toilet") == "тесно":
+        minus.append(f"Унитаз зажат: {rv.get('toilet_note')}")
+    elif rv.get("toilet") == "не видно":
+        check.append("По фото не видно, сколько места вокруг унитаза. Попросить фото или видео санузла.")
+    if rv.get("storage") == "нет":
+        minus.append(f"Нет шкафов для вещей: {rv.get('storage_note')}")
+    elif rv.get("storage") == "мало":
+        check.append(f"Мест для хранения мало: {rv.get('storage_note')}")
+    elif rv.get("storage") == "не видно":
+        check.append("На фото не видно шкафов. Спросить, где хранить одежду.")
+    check += [f"На фото: {x}" for x in rv.get("other") or []]
     fee = bt.get("clientFee") or 0
     if fee:
         (minus if fee >= 100 else check).append(f"Комиссия агенту {fee}%: {money(price * fee / 100)} ₽.")

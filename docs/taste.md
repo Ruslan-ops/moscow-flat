@@ -33,4 +33,5 @@ Rating scale = predicted client rating 1..5 of the flat itself (ignore price/loc
 - 1: no renovation/unfinished, dirty, damaged, mold, "horror film" vibes.
 - NOTE: calibration showed only the first 3 photos per flat, so ratings for 5 and 6 reflect our sampling, not the listing. In real review you see up to 12 photos spread across the whole gallery; judge "not enough info" only if the listing itself truly lacks interior photos (kitchen, bathroom, room).
 - Penalize: listing has fewer than 4 interior photos in total; only renders; cluttered with owner's stuff; dark small kitchen; old bathtub/rusty pipes; windows straight onto a highway.
+- Client priorities (2026-11-12): toilet squeezed against washing machine/bath/sink/wall is a strong minus (−0.5); no wardrobes/closets at all is a strong minus (−0.5). A missing balcony does not matter (laundry dries on a rack).
 - Neutral: Soviet ARCHITECTURE of the building (she likes it) — only the interior must be modern.
