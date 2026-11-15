@@ -5,6 +5,7 @@ import os
 import sys
 import time
 import requests
+from concurrent.futures import ThreadPoolExecutor
 from PIL import Image
 
 ROOT = "D:/Users/Ruslan/VsCodeProjects/moscow-flat"
@@ -16,9 +17,13 @@ def fetch(url):
     for attempt in range(3):
         try:
             r = requests.get(url, timeout=30)
-            return Image.open(io.BytesIO(r.content)).convert("RGB") if r.status_code == 200 else None
+            if r.status_code == 200:
+                return Image.open(io.BytesIO(r.content)).convert("RGB")
+            if r.status_code in (403, 404):
+                return None
         except requests.RequestException:
-            time.sleep(3 * (attempt + 1))
+            pass
+        time.sleep(3 * (attempt + 1))
     return None
 
 
@@ -32,13 +37,26 @@ def montage(images, path, tile=(TILE_W, TILE_H)):
     sheet.save(path, "JPEG", quality=80)
 
 
+def pick(urls, n):
+    return urls if len(urls) <= n else [urls[round(i * (len(urls) - 1) / (n - 1))] for i in range(n)]
+
+
 def sheet_for_offer(offer, max_photos=12, path=None, tile=(TILE_W, TILE_H)):
-    urls = offer.get("photos", [])
-    picked = urls if len(urls) <= max_photos else [urls[round(i * (len(urls) - 1) / (max_photos - 1))] for i in range(max_photos)]
-    imgs = [im for im in (fetch(u) for u in picked) if im is not None]
+    imgs = [im for im in (fetch(u) for u in pick(offer.get("photos", []), max_photos)) if im is not None]
     if imgs:
         montage(imgs, path or f"{ROOT}/data/photos/{offer['cianId']}.jpg", tile)
     return len(imgs)
+
+
+def sheets_for_offer(offer):
+    full = pick(offer.get("photos", []), FULL_MAX)
+    with ThreadPoolExecutor(4) as ex:
+        got = dict(zip(full, ex.map(fetch, full)))
+    imgs = [got[u] for u in full if got[u] is not None]
+    if imgs:
+        montage([im.copy() for im in imgs], f"{ROOT}/data/photos/full/{offer['cianId']}.jpg", FULL_TILE)
+        montage([got[u] for u in pick(full, 12) if got[u] is not None], f"{ROOT}/data/photos/{offer['cianId']}.jpg")
+    return len(imgs), len(full)
 
 
 def calib_sheets():
@@ -54,8 +72,5 @@ if __name__ == "__main__":
         offers = {o["cianId"]: o for o in json.load(open(f"{ROOT}/data/cian/offers.json", encoding="utf-8"))}
         os.makedirs(f"{ROOT}/data/photos/full", exist_ok=True)
         for cid in json.load(open(sys.argv[2], encoding="utf-8")):
-            if not os.path.exists(f"{ROOT}/data/photos/{cid}.jpg"):
-                print(cid, sheet_for_offer(offers[cid]))
             if not os.path.exists(f"{ROOT}/data/photos/full/{cid}.jpg"):
-                print(cid, "full", sheet_for_offer(offers[cid], FULL_MAX, f"{ROOT}/data/photos/full/{cid}.jpg", FULL_TILE))
-                time.sleep(0.5)
+                print(cid, *sheets_for_offer(offers[cid]), flush=True)

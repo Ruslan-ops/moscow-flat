@@ -6,12 +6,15 @@ import subprocess
 import sys
 from datetime import datetime
 
+sys.path.insert(0, "D:/Users/Ruslan/VsCodeProjects/moscow-flat/src")
+from realtor import days_listed
+
 ROOT = "D:/Users/Ruslan/VsCodeProjects/moscow-flat"
 PY = f"{ROOT}/.venv/Scripts/python.exe"
 DB = f"{ROOT}/data/avito/collector.sqlite"
 NEW = f"{ROOT}/data/reviews/new"
 SEARCHES = [f"{ROOT}/data/cian/search_urls_v2.txt", f"{ROOT}/data/cian/search_urls_repair.txt"]
-MIN_TOTAL = 0.7
+MAX_AGE_DAYS = 100
 BATCH = 12
 
 
@@ -59,10 +62,11 @@ def prepare(limit, max_price):
     done = reviewed_ids()
     repair = repair_ids()
     ranked = load("data/ranked/cian_ranked.json")
-    cand = [r for r in ranked if not r["soft_reject"] and not r.get("duplicate_of") and r["cianId"] not in done and r["total"] >= MIN_TOTAL and r["price"] <= max_price]
+    offers = {o["cianId"]: o for o in load("data/cian/offers.json")}
+    cand = [r for r in ranked if not r["soft_reject"] and not r.get("duplicate_of") and r["cianId"] not in done and r["cianId"] in repair and r["price"] <= max_price and (days_listed(offers[r["cianId"]], datetime.now()) or 0) <= MAX_AGE_DAYS]
     seen = {o["cianId"]: o["first_seen"] for o in load("data/cian/offers.json")}
     since = max(seen[i] for i in done if i in seen)
-    cand.sort(key=lambda r: (seen[r["cianId"]] <= since, r["cianId"] not in repair, -r["total"]))
+    cand.sort(key=lambda r: (seen[r["cianId"]] <= since, -r["total"]))
     picked = [r["cianId"] for r in cand[:limit]]
     print("unreviewed candidates", len(cand), "new since", since, sum(seen[r["cianId"]] > since for r in cand), "picked", len(picked), "with repair tag", sum(r["cianId"] in repair for r in cand[:limit]))
     if not picked:
@@ -72,8 +76,7 @@ def prepare(limit, max_price):
     os.makedirs(NEW, exist_ok=True)
     dump(picked, "data/reviews/new/queue.json")
     run(f"{ROOT}/src/photos.py", "offers", f"{NEW}/queue.json")
-    offers = {o["cianId"]: o for o in load("data/cian/offers.json")}
-    have = [i for i in picked if os.path.exists(f"{ROOT}/data/photos/{i}.jpg")]
+    have = [i for i in picked if os.path.exists(f"{ROOT}/data/photos/full/{i}.jpg")]
     for k in range(0, len(have), BATCH):
         dump([{"cianId": i, "price": offers[i]["bargainTerms"]["price"], "area": offers[i].get("totalArea"), "kitchen": offers[i].get("kitchenArea"), "rooms": offers[i].get("roomsCount"), "floor": f"{offers[i].get('floorNumber')}/{offers[i]['building'].get('floorsCount')}", "photos_total": len(offers[i].get("photos") or []), "description": (offers[i].get("description") or "")[:1500]} for i in have[k:k + BATCH]], f"data/reviews/new/batch_{k // BATCH}.json")
     print("batches", (len(have) + BATCH - 1) // BATCH, "in", NEW)
@@ -82,7 +85,7 @@ def prepare(limit, max_price):
 def merge():
     store = load("data/reviews/all_sonnet.json")
     known = {r["cianId"] for r in store}
-    added = [r for f in sorted(glob.glob(f"{NEW}/out_*.json")) for r in json.load(open(f, encoding="utf-8")) if r["cianId"] not in known]
+    added = [r for f in sorted(glob.glob(f"{NEW}/out_*.json")) for r in json.load(open(f, encoding="utf-8-sig")) if r["cianId"] not in known]
     stamp = datetime.now().strftime("%Y-%m-%d")
     for r in added:
         r["reviewed"] = stamp
