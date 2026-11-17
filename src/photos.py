@@ -55,7 +55,7 @@ def sheets_for_offer(offer):
     imgs = [got[u] for u in full if got[u] is not None]
     if imgs:
         montage([im.copy() for im in imgs], f"{ROOT}/data/photos/full/{offer['cianId']}.jpg", FULL_TILE)
-        montage([got[u] for u in pick(full, 12) if got[u] is not None], f"{ROOT}/data/photos/{offer['cianId']}.jpg")
+        montage(pick(imgs, 12), f"{ROOT}/data/photos/{offer['cianId']}.jpg")
     return len(imgs), len(full)
 
 

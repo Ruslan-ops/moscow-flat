@@ -21,8 +21,19 @@ function fmtEventDetail(evt) {
 }
 
 async function refresh() {
-  const stateResp = await chrome.runtime.sendMessage({ cmd: "get-state" });
-  const state = (stateResp && stateResp.state) || {};
+  if (location.search.includes("auto=1")) {
+    await chrome.runtime.sendMessage({ cmd: "stop" });
+    await chrome.runtime.sendMessage({ cmd: "start" });
+    window.close();
+    return;
+  }
+  let stateResp = await chrome.runtime.sendMessage({ cmd: "get-state" });
+  let state = (stateResp && stateResp.state) || {};
+  if (state.running && String(state.lastError || "").includes("No tab with id")) {
+    await chrome.runtime.sendMessage({ cmd: "stop" });
+    stateResp = await chrome.runtime.sendMessage({ cmd: "start" });
+    state = (stateResp && stateResp.state) || {};
+  }
 
   const badge = el("stateBadge");
   if (state.running) {

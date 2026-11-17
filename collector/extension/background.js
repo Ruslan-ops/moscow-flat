@@ -56,19 +56,29 @@ async function serverFetch(path, options) {
 }
 
 
-async function startCollector() {
-  let state = await getState();
-  if (state.running && state.workerTabId) {
-    return state;
+async function ensureWorkerTab(workerTabId) {
+  if (workerTabId) {
+    try {
+      await chrome.tabs.get(workerTabId);
+      return workerTabId;
+    } catch (e) {
+    }
   }
   const tab = await withTimeout(
     chrome.tabs.create({ url: "about:blank", active: false }),
     10_000,
     "tabs.create"
   );
+  await setState({ workerTabId: tab.id });
+  return tab.id;
+}
+
+async function startCollector() {
+  let state = await getState();
+  const tabId = await ensureWorkerTab(state.running ? state.workerTabId : null);
   state = await setState({
     running: true,
-    workerTabId: tab.id,
+    workerTabId: tabId,
     phase: "idle",
     nextActionAt: null,
     currentTask: null,
@@ -263,15 +273,17 @@ async function beginNavigate() {
   });
 
   let probeResult = null;
+  let tabId = state.workerTabId;
   try {
+    tabId = await ensureWorkerTab(tabId);
     await withTimeout(
-      chrome.tabs.update(state.workerTabId, { url: task.url }),
+      chrome.tabs.update(tabId, { url: task.url }),
       10_000,
       "tabs.update"
     );
     if (stale()) return;
 
-    await waitForRealNavigation(state.workerTabId, task, tNavStart, NAV_TIMEOUT_MS);
+    await waitForRealNavigation(tabId, task, tNavStart, NAV_TIMEOUT_MS);
     if (stale()) return;
 
     const remainingMs = () => Math.max(1000, tNavStart + NAV_TIMEOUT_MS - Date.now());
@@ -280,7 +292,7 @@ async function beginNavigate() {
     try {
       await withTimeout(
         chrome.scripting.executeScript({
-          target: { tabId: state.workerTabId },
+          target: { tabId },
           files: isCian ? ["extract.js", "cian.js"] : ["extract.js"],
         }),
         10_000,
@@ -290,7 +302,7 @@ async function beginNavigate() {
       const probeTimeout = Math.min(PROBE_TIMEOUT_MS, remainingMs());
       const results = await withTimeout(
         chrome.scripting.executeScript({
-          target: { tabId: state.workerTabId },
+          target: { tabId },
           func: (timeoutMs, taskInfo, cianMode) => {
             if (cianMode) {
               const cianApi = window.CianCollectorExtract;
@@ -329,7 +341,7 @@ async function beginNavigate() {
 
     if (!probeResult || !probeResult.ready) {
       await withTimeout(
-        waitForTabComplete(state.workerTabId, remainingMs()),
+        waitForTabComplete(tabId, remainingMs()),
         remainingMs() + 5_000,
         "wait for tab complete"
       );
@@ -352,7 +364,7 @@ async function beginNavigate() {
   try {
     await withTimeout(
       chrome.scripting.executeScript({
-        target: { tabId: state.workerTabId },
+        target: { tabId },
         files: task.type === "cian_search" ? ["extract.js", "cian.js", "cian_content.js"] : task.type === "cian_item" ? ["extract.js", "cian.js", "cian_item_content.js"] : ["extract.js", "content.js"],
       }),
       EXTRACT_TIMEOUT_MS,

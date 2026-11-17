@@ -103,7 +103,7 @@ def photo(cid):
     im = Image.open(path)
     im.thumbnail((PHOTO_W, PHOTO_W))
     buf = io.BytesIO()
-    im.save(buf, "JPEG", quality=70, optimize=True)
+    im.save(buf, "WEBP", quality=68)
     return base64.b64encode(buf.getvalue()).decode()
 
 

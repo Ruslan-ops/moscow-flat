@@ -174,8 +174,8 @@ button.b.bad::after { content: " ▾"; }
   <div class="f pri"><span>Цена до, ₽</span><div class="row"><input type="number" id="pmax" step="1000" min="20000" value="70000" aria-label="Цена до"><span class="row" id="pchips"></span></div></div>
   <label class="f"><span>Площадь от, м²</span><input type="number" id="amin" step="1" min="20" value="29"></label>
   <div class="f"><span>Ремонт от</span><div class="row" id="rchips"></div></div>
-  <label class="f"><span>До метро</span><select id="walk"><option value="99">любое</option><option value="5">до 5 мин</option><option value="8">до 8 мин</option><option value="10">до 10 мин</option><option value="12">до 12 мин</option></select></label>
-  <label class="f"><span>Сортировка</span><select id="sort"><option value="final">общий рейтинг</option><option value="price">сначала дешевле</option><option value="repair">лучше ремонт</option><option value="hub">ближе к выбранному месту</option><option value="fresh">свежие объявления</option><option value="park">ближе парк</option></select></label>
+  <div class="f"><span>До метро пешком</span><div class="row"><select id="walk" aria-label="До метро пешком"><option value="99">до 15 мин (все)</option><option value="3">до 3 мин</option><option value="5">до 5 мин</option><option value="7">до 7 мин</option><option value="8">до 8 мин</option><option value="10">до 10 мин</option><option value="12">до 12 мин</option><option value="15">до 15 мин</option></select><span class="row" id="wchips"></span></div></div>
+  <label class="f"><span>Сортировка</span><select id="sort"><option value="final">общий рейтинг</option><option value="price">сначала дешевле</option><option value="repair">лучше ремонт</option><option value="metro">ближе к метро</option><option value="hub">ближе к выбранному месту</option><option value="fresh">свежие объявления</option><option value="park">ближе парк</option></select></label>
   <label class="f"><span>Объявлению не больше</span><select id="age"><option value="7">7 дней</option><option value="14">14 дней</option><option value="30">30 дней</option><option value="60">60 дней</option><option value="100" selected>100 дней</option><option value="99999">любое</option></select></label>
   <button type="button" class="chip" id="toggleMore" aria-pressed="false">Фильтры</button>
   <span class="count" id="count"></span>
@@ -245,6 +245,7 @@ function chips(box, values, label, onSet) {
 }
 chips("pchips", [50000, 55000, 60000, 65000, 70000], (v) => `${v / 1000}к`, (v) => { $("pmax").value = v; apply(); });
 chips("rchips", [3, 3.5, 4], (v) => num(v), (v) => { state.rmin = v; apply(); });
+chips("wchips", [5, 7, 10, 12], (v) => `≤${v}м`, (v) => { $("walk").value = +$("walk").value === v ? 99 : v; apply(); });
 
 const map = L.map("map").setView([55.75, 37.62], 11);
 const base = {
@@ -377,7 +378,7 @@ ${gallery(f)}
 </article>`;
 }
 
-const io = new IntersectionObserver((es) => es.forEach((e) => { if (e.isIntersecting) { const im = e.target; im.src = "data:image/jpeg;base64," + P[im.dataset.src]; io.unobserve(im); } }), {rootMargin: "600px"});
+const io = new IntersectionObserver((es) => es.forEach((e) => { if (e.isIntersecting) { const im = e.target, s = P[im.dataset.src]; im.src = s === 1 ? `sheets/${im.dataset.src}.webp` : `data:image/${s.startsWith("/9j/") ? "jpeg" : "webp"};base64,` + s; io.unobserve(im); } }), {rootMargin: "600px"});
 
 function read() {
   return {pmax: +$("pmax").value || 1e9, amin: +$("amin").value || 0, walk: +$("walk").value, sort: $("sort").value, hub: +$("hub").value, hubmax: +$("hubmax").value, park: +$("park").value, okrug: $("okrug").value,
@@ -387,6 +388,7 @@ const SORTS = {
   final: (a, b) => b.final - a.final,
   price: (a, b) => a.price - b.price,
   repair: (a, b) => b.review.pred - a.review.pred || b.final - a.final,
+  metro: (a, b) => a.metro_walk - b.metro_walk || b.final - a.final,
   hub: (a, b, s) => a.commute[s.hub] - b.commute[s.hub],
   fresh: (a, b) => (b.created || "").localeCompare(a.created || ""),
   park: (a, b) => a.place.park_walk - b.place.park_walk,
@@ -395,6 +397,7 @@ function apply() {
   const s = read();
   document.querySelectorAll("#pchips .chip").forEach((b) => b.setAttribute("aria-pressed", +b.dataset.v === s.pmax));
   document.querySelectorAll("#rchips .chip").forEach((b) => b.setAttribute("aria-pressed", +b.dataset.v === state.rmin));
+  document.querySelectorAll("#wchips .chip").forEach((b) => b.setAttribute("aria-pressed", +b.dataset.v === s.walk));
   const shown = F.filter((f) => f.price <= s.pmax && f.totalArea >= s.amin && f.review.pred >= state.rmin && f.metro_walk <= s.walk && f.commute[s.hub] <= s.hubmax && f.place.park_walk <= s.park
     && (!s.okrug || f.okrug === s.okrug) && (!s.nofee || !f.fee) && (!s.quiet || f.place.quiet >= 0.95) && (!s.nopanel || !["panel", "block"].includes(f.materialType))
     && (!s.notop || f.floorNumber !== f.floorsCount) && (!s.nominus || !f.realtor.minus.length) && (!s.newonly || f.status === "new") && (s.showgone || f.status !== "removed") && (f.realtor.days_listed || 0) <= s.age);

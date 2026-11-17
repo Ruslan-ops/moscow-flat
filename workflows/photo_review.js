@@ -16,5 +16,5 @@ CLIENT PRIORITIES: (A) toilet clearance — toilet squeezed against the washing 
 Also look like an experienced realtor for things a layperson misses: stains on ceilings, old wooden windows, mismatched photos (different flats), photos that look years old, missing bathroom photos, owner's belongings stored in a room. Put them in red_flags.
 Write the file incrementally (rewrite the whole list after every 4 flats) so progress is never lost.
 Return only: count reviewed, distribution of pred, list of cianIds with pred >= 4.`
-const res = await parallel(args.batches.map(k => () => agent(prompt(k), { label: `review:batch_${k}`, phase: 'Review', model: 'sonnet' })))
+const res = await parallel(args.batches.map(k => () => agent(prompt(k), { label: `review:batch_${k}`, phase: 'Review', model: 'composer-2.5-fast' })))
 return res
